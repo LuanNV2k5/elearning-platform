@@ -51,5 +51,9 @@
                 Đăng nhập
             </x-primary-button>
         </div>
+        <a href="{{ route('google.login') }}"
+           style="display:block;text-align:center;margin-top:10px">
+            🔐 Đăng nhập bằng Google
+        </a>   
     </form>
 </x-guest-layout>
