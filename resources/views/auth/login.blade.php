@@ -1,59 +1,71 @@
 <x-guest-layout>
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+    <link rel="stylesheet" href="{{ asset('css/google-btn.css') }}">
+
+    <x-auth-session-status class="mb-3 text-success" :status="session('status')" />
 
     <form method="POST" action="{{ route('login') }}">
         @csrf
 
-        <!-- Email -->
-        <div>
-            <x-input-label for="email" value="Email" />
-            <x-text-input
-                id="email"
-                class="block mt-1 w-full"
-                type="email"
-                name="email"
-                value="{{ old('email') }}"
-                required
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input 
+                id="email" 
+                type="email" 
+                name="email" 
+                class="form-control @error('email') is-invalid @enderror" 
+                value="{{ old('email') }}" 
+                required 
                 autofocus
-            />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+            >
+            @error('email')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
         </div>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" value="Mật khẩu" />
-            <x-text-input
-                id="password"
-                class="block mt-1 w-full"
-                type="password"
-                name="password"
+        <div class="mb-3">
+            <label for="password" class="form-label">Mật khẩu</label>
+            <input 
+                id="password" 
+                type="password" 
+                name="password" 
+                class="form-control @error('password') is-invalid @enderror" 
                 required
-            />
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
+            >
+            @error('password')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
         </div>
 
-        <!-- Remember -->
-        <div class="block mt-4">
-            <label class="inline-flex items-center">
-                <input type="checkbox" name="remember" class="rounded border-gray-300">
-                <span class="ms-2 text-sm text-gray-600">Ghi nhớ đăng nhập</span>
+        <div class="mb-3 form-check">
+            <input type="checkbox" name="remember" class="form-check-input" id="remember_me">
+            <label class="form-check-label text-secondary" for="remember_me">
+                Ghi nhớ đăng nhập
             </label>
         </div>
 
-        <div class="flex items-center justify-between mt-4">
-            <a class="underline text-sm text-gray-600 hover:text-gray-900"
-               href="{{ route('register') }}">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <a class="text-decoration-none small" href="{{ route('register') }}">
                 Chưa có tài khoản?
             </a>
 
-            <x-primary-button>
+            <button type="submit" class="btn btn-primary">
                 Đăng nhập
-            </x-primary-button>
+            </button>
         </div>
-        <a href="{{ route('google.login') }}"
-           style="display:block;text-align:center;margin-top:10px">
-            🔐 Đăng nhập bằng Google
-        </a>   
+
+        <div class="position-relative my-4 text-center">
+            <hr class="text-secondary opacity-25">
+            <span class="position-absolute top-50 start-50 translate-middle bg-white px-2 text-muted small">
+                Hoặc tiếp tục với
+            </span>
+        </div>
+
+        <a href="{{ route('google.login') }}" class="google-btn-blue">
+            <div class="google-icon-wrapper">
+                <img class="google-icon" src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo"/>
+            </div>
+            <span class="btn-text">Sign in with Google</span>
+        </a>
+
     </form>
 </x-guest-layout>
