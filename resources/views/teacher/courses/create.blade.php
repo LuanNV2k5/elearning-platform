@@ -1,26 +1,42 @@
-<x-app-layout>
-    <div class="container">
-        <h3 class="mb-4">Tạo khóa học</h3>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Tạo khóa học</title>
+</head>
+<body>
 
-        <form method="POST" action="{{ route('teacher.courses.store') }}">
-            @csrf
+<h1>Tạo khóa học mới</h1>
 
-            <div class="mb-3">
-                <label class="form-label">Tên khóa học</label>
-                <input name="title" class="form-control" required>
-            </div>
+<form method="POST" action="{{ route('teacher.courses.store') }}">
+    @csrf
 
-            <div class="mb-3">
-                <label class="form-label">Mô tả</label>
-                <textarea name="description" class="form-control"></textarea>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Giá</label>
-                <input type="number" name="price" class="form-control" value="0">
-            </div>
-
-            <button class="btn btn-primary">Tạo khóa học</button>
-        </form>
+    <div>
+        <label>Tên khóa học</label><br>
+        <input type="text" name="title" value="{{ old('title') }}">
+        @error('title')
+            <div style="color:red">{{ $message }}</div>
+        @enderror
     </div>
-</x-app-layout>
+
+    <br>
+
+    <div>
+        <label>Mô tả</label><br>
+        <textarea name="description">{{ old('description') }}</textarea>
+    </div>
+
+    <br>
+
+    <div>
+        <label>Giá (VNĐ)</label><br>
+        <input type="number" name="price" value="{{ old('price', 0) }}">
+    </div>
+
+    <br>
+
+    <button type="submit">Lưu khóa học</button>
+</form>
+
+</body>
+</html>
