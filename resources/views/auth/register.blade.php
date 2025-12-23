@@ -32,22 +32,30 @@
         </div>
 
         <!-- Role -->
-        <div class="mt-4">
-            <x-input-label for="role" value="Bạn là" />
-            <select
-                name="role"
-                id="role"
-                class="block mt-1 w-full rounded border-gray-300"
-                required
-            >
-                <option value="student" {{ old('role') == 'student' ? 'selected' : '' }}>
-                    Học sinh
-                </option>
-                <option value="teacher" {{ old('role') == 'teacher' ? 'selected' : '' }}>
-                    Giáo viên
-                </option>
-            </select>
-            <x-input-error :messages="$errors->get('role')" class="mt-2" />
+        <div class="mb-3">
+            <label class="form-label fw-bold">Bạn là</label>
+            
+            <div class="d-flex gap-4 mt-1">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="role" id="role_student" value="student" 
+                        {{ old('role') == 'student' ? 'checked' : '' }} required>
+                    <label class="form-check-label" for="role_student">
+                        Học sinh
+                    </label>
+                </div>
+        
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="role" id="role_teacher" value="teacher" 
+                        {{ old('role') == 'teacher' ? 'checked' : '' }}>
+                    <label class="form-check-label" for="role_teacher">
+                        Giáo viên
+                    </label>
+                </div>
+            </div>
+            
+            @error('role')
+                <div class="text-danger small mt-1">{{ $message }}</div>
+            @enderror
         </div>
 
         <!-- Password -->

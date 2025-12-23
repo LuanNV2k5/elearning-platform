@@ -12,28 +12,25 @@ class GoogleController extends Controller
 {
     public function redirect()
     {
-        return Socialite::driver('google')->stateless()->redirect();
+        return Socialite::driver('google')->redirect();
     }
 
     public function callback()
     {
-        $googleUser = Socialite::driver('google')->stateless()->user();
+        $googleUser = Socialite::driver('google')->user();
 
         $user = User::firstOrCreate(
             ['email' => $googleUser->getEmail()],
             [
                 'name' => $googleUser->getName(),
-                'password' => bcrypt(Str::random(16)),
-                'role' => 'student', // MẶC ĐỊNH
+                'password' => bcrypt(str()->random(16)),
+                'role' => 'student', // mặc định
             ]
         );
 
         Auth::login($user, true);
 
-        return match ($user->role) {
-            'admin'   => redirect()->route('admin.dashboard'),
-            'teacher' => redirect()->route('teacher.dashboard'),
-            default   => redirect()->route('student.dashboard'),
-        };
+        return redirect('/');
     }
+
 }
