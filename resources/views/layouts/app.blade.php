@@ -5,34 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Laravel') }}</title>
+    <title>{{ config('app.name', 'E-Learning') }}</title>
 
     <!-- Fonts -->
-    
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
-    <!-- Bootstrap 5 CDN -->
+    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </head>
-<body>
-    <div class="min-vh-100 bg-light">
-        @include('layouts.navigation')
+<body class="bg-light">
 
-        @isset($header)
-            <header class="bg-white shadow-sm">
-                <div class="container py-3">
-                    {{ $header }}
-                </div>
-            </header>
-        @endisset
+    @include('layouts.navigation')
 
-        <main class="py-4">
-            <div class="container">
-                {{ $slot }}
-            </div>
-        </main>
-    </div>
+    <main class="py-4">
+        <div class="container">
+            @yield('content')
+        </div>
+    </main>
+
 </body>
 </html>

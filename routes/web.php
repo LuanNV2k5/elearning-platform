@@ -6,27 +6,33 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
 use App\Http\Controllers\Teacher\DashboardController as TeacherDashboard;
 use App\Http\Controllers\Student\DashboardController as StudentDashboard;
 use App\Http\Controllers\Auth\GoogleController;
+use App\Http\Controllers\CourseController;
+
 /*
 |--------------------------------------------------------------------------
-| LANDING PAGE
+| DASHBOARD (redirect theo role)
 |--------------------------------------------------------------------------
 */
-Route::get('/', function () {
-    if (!auth()->check()) {
-        return redirect()->route('login');
-    }
-
+Route::get('/dashboard', function () {
     return match (auth()->user()->role) {
         'admin'   => redirect()->route('admin.dashboard'),
         'teacher' => redirect()->route('teacher.dashboard'),
         default   => redirect()->route('student.dashboard'),
     };
-});
-
+})->middleware('auth')->name('dashboard');
 
 /*
 |--------------------------------------------------------------------------
-| PROFILE (CHUNG CHO USER ĐÃ LOGIN)
+| ROOT
+|--------------------------------------------------------------------------
+*/
+Route::get('/', function () {
+    return redirect()->route('dashboard');
+})->middleware('auth');
+
+/*
+|--------------------------------------------------------------------------
+| PROFILE
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {
@@ -57,6 +63,9 @@ Route::middleware(['auth', 'role:teacher'])
     ->name('teacher.')
     ->group(function () {
         Route::get('/dashboard', [TeacherDashboard::class, 'index'])->name('dashboard');
+
+        // Quản lý khóa học
+        Route::resource('courses', CourseController::class);
     });
 
 /*
@@ -71,10 +80,17 @@ Route::middleware(['auth', 'role:student'])
         Route::get('/dashboard', [StudentDashboard::class, 'index'])->name('dashboard');
     });
 
-
+/*
+|--------------------------------------------------------------------------
+| GOOGLE LOGIN
+|--------------------------------------------------------------------------
+*/
+Route::middleware('guest')->group(function () {
     Route::get('/auth/google', [GoogleController::class, 'redirect'])
         ->name('google.login');
 
-    Route::get('/auth/google/callback', [GoogleController::class, 'callback']);
+    Route::get('/auth/google/callback', [GoogleController::class, 'callback'])
+        ->name('google.callback');
+});
 
 require __DIR__.'/auth.php';
