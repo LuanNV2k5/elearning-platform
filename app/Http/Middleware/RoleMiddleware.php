@@ -9,13 +9,13 @@ use Illuminate\Support\Facades\Auth;
 
 class RoleMiddleware
 {
-    public function handle(Request $request, Closure $next, string $role): Response
+    public function handle(Request $request, Closure $next, string $role)
     {
-        if (!Auth::check()) {
+        if (!auth()->check()) {
             return redirect()->route('login');
         }
 
-        if (Auth::user()->role !== $role) {
+        if (auth()->user()->role !== $role) {
             abort(403, 'Bạn không có quyền truy cập');
         }
 
