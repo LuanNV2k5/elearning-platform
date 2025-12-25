@@ -32,7 +32,8 @@ class CourseController extends Controller
             'price' => $request->price ?? 0,
         ]);
 
-        return redirect()->route('teacher.courses.index')
+        return redirect()
+            ->route('teacher.courses.index')
             ->with('success', 'Tạo khóa học thành công');
     }
 }

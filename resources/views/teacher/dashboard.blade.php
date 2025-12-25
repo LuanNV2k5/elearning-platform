@@ -1,10 +1,6 @@
-@extends('layouts.app')
+@extends('layouts.teacher')
 
 @section('content')
-    <h1 class="mb-3">Teacher Dashboard</h1>
-    <p>Xin chào {{ auth()->user()->name }}</p>
-
-    <a href="{{ route('teacher.courses.index') }}" class="btn btn-primary">
-        Quản lý khóa học
-    </a>
+    <h2>Xin chào Teacher 👋</h2>
+    <p>Chào mừng bạn đến trang quản lý giảng viên.</p>
 @endsection

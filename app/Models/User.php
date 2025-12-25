@@ -30,6 +30,8 @@ class User extends Authenticatable
         ];
     }
 
+    /* ================= ROLE CHECK ================= */
+
     public function isAdmin()
     {
         return $this->role === 'admin';
@@ -44,18 +46,24 @@ class User extends Authenticatable
     {
         return $this->role === 'student';
     }
-    public function courses()
+
+    /* ================= RELATION ================= */
+
+    // Giáo viên tạo khóa học
+    public function teachingCourses()
     {
         return $this->hasMany(Course::class, 'teacher_id');
+    }
+
+    // Học viên đăng ký khóa học
+    public function enrolledCourses()
+    {
+        return $this->belongsToMany(Course::class, 'course_user');
     }
 
     public function enrollments()
     {
         return $this->hasMany(Enrollment::class);
-    }
-    public function teacher()
-    {
-        return $this->belongsTo(User::class, 'teacher_id');
     }
 
     public function lessons()

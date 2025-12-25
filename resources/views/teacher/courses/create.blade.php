@@ -1,42 +1,27 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <title>Tạo khóa học</title>
-</head>
-<body>
+@extends('layouts.teacher')
 
-<h1>Tạo khóa học mới</h1>
+@section('content')
+    <h3>➕ Tạo khóa học</h3>
 
-<form method="POST" action="{{ route('teacher.courses.store') }}">
-    @csrf
+    <form method="POST" action="{{ route('teacher.courses.store') }}">
+        @csrf
 
-    <div>
-        <label>Tên khóa học</label><br>
-        <input type="text" name="title" value="{{ old('title') }}">
-        @error('title')
-            <div style="color:red">{{ $message }}</div>
-        @enderror
-    </div>
+        <div class="mb-3">
+            <label class="form-label">Tên khóa học</label>
+            <input type="text" name="title" class="form-control" required>
+        </div>
 
-    <br>
+        <div class="mb-3">
+            <label class="form-label">Mô tả</label>
+            <textarea name="description" class="form-control"></textarea>
+        </div>
 
-    <div>
-        <label>Mô tả</label><br>
-        <textarea name="description">{{ old('description') }}</textarea>
-    </div>
+        <div class="mb-3">
+            <label class="form-label">Giá</label>
+            <input type="number" name="price" class="form-control" value="0">
+        </div>
 
-    <br>
-
-    <div>
-        <label>Giá (VNĐ)</label><br>
-        <input type="number" name="price" value="{{ old('price', 0) }}">
-    </div>
-
-    <br>
-
-    <button type="submit">Lưu khóa học</button>
-</form>
-
-</body>
-</html>
+        <button class="btn btn-success">Lưu</button>
+        <a href="{{ route('teacher.courses.index') }}" class="btn btn-secondary">Quay lại</a>
+    </form>
+@endsection
