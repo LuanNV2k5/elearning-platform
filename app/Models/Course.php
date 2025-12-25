@@ -18,4 +18,13 @@ class Course extends Model
     {
         return $this->belongsTo(User::class, 'teacher_id');
     }
+
+    public function lessons()
+    {
+        return $this->hasMany(Lesson::class)->orderBy('order');
+    }
+    public function students()
+    {
+        return $this->belongsToMany(User::class, 'course_user');
+    }
 }

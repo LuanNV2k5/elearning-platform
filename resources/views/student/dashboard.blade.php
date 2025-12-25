@@ -1,6 +1,6 @@
-<h1>Student Dashboard</h1>
-<p>Xin chào Sinh viên</p>
-<form method="POST" action="{{ route('logout') }}">
-    @csrf
-    <button>Logout</button>
-</form>
+@extends('layouts.student')
+
+@section('content')
+    <h3>🎓 Student Dashboard</h3>
+    <p>Chào mừng bạn đến hệ thống học tập.</p>
+@endsection
