@@ -3,11 +3,9 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Auth\LoginRequest;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
-use Illuminate\Http\Request;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -31,22 +29,25 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        $user = Auth::user();
+        // 🔴 LOAD ROLE CHO CHẮC
+        $user = Auth::user()->load('role');
 
-        return match ($user->role) {
+        // 🔴 REDIRECT THEO ROLE (ĐÚNG)
+        return match ($user->role->name) {
             'admin'   => redirect()->route('admin.dashboard'),
             'teacher' => redirect()->route('teacher.dashboard'),
-            default   => redirect()->route('student.dashboard'),
+            'student' => redirect()->route('student.dashboard'),
+            default   => abort(403, 'Role không hợp lệ'),
         };
     }
 
     public function destroy(Request $request)
     {
         Auth::logout();
-    
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-    
+
         return redirect()->route('login');
     }
 }

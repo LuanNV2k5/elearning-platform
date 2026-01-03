@@ -1,43 +1,56 @@
 <x-guest-layout>
     <link rel="stylesheet" href="{{ asset('css/google-btn.css') }}">
 
-    <x-auth-session-status class="mb-3 text-success" :status="session('status')" />
+    <x-auth-session-status
+        class="mb-3 text-success"
+        :status="session('status')"
+    />
 
-    <form method="POST" action="{{ route('login') }}">
+    <form method="POST" action="{{ route('login') }}" autocomplete="on">
         @csrf
 
+        {{-- Email --}}
         <div class="mb-3">
             <label for="email" class="form-label">Email</label>
-            <input 
-                id="email" 
-                type="email" 
-                name="email" 
-                class="form-control @error('email') is-invalid @enderror" 
-                value="{{ old('email') }}" 
-                required 
+            <input
+                id="email"
+                type="email"
+                name="email"
+                class="form-control @error('email') is-invalid @enderror"
+                value="{{ old('email') }}"
+                required
                 autofocus
+                autocomplete="username"
             >
             @error('email')
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
         </div>
 
+        {{-- Password --}}
         <div class="mb-3">
             <label for="password" class="form-label">Mật khẩu</label>
-            <input 
-                id="password" 
-                type="password" 
-                name="password" 
-                class="form-control @error('password') is-invalid @enderror" 
+            <input
+                id="password"
+                type="password"
+                name="password"
+                class="form-control @error('password') is-invalid @enderror"
                 required
+                autocomplete="current-password"
             >
             @error('password')
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
         </div>
 
+        {{-- Remember --}}
         <div class="mb-3 form-check">
-            <input type="checkbox" name="remember" class="form-check-input" id="remember_me">
+            <input
+                type="checkbox"
+                name="remember"
+                class="form-check-input"
+                id="remember_me"
+            >
             <label class="form-check-label text-secondary" for="remember_me">
                 Ghi nhớ đăng nhập
             </label>
@@ -55,14 +68,19 @@
 
         <div class="position-relative my-4 text-center">
             <hr class="text-secondary opacity-25">
-            <span class="position-absolute top-50 start-50 translate-middle bg-white px-2 text-muted small">
+            <span
+                class="position-absolute top-50 start-50 translate-middle bg-white px-2 text-muted small">
                 Hoặc tiếp tục với
             </span>
         </div>
 
         <a href="{{ route('google.login') }}" class="google-btn-blue">
             <div class="google-icon-wrapper">
-                <img class="google-icon" src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo"/>
+                <img
+                    class="google-icon"
+                    src="https://developers.google.com/identity/images/g-logo.png"
+                    alt="Google logo"
+                />
             </div>
             <span class="btn-text">Sign in with Google</span>
         </a>

@@ -12,8 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('roles', function (Blueprint $table) {
-            $table->id();
-            $table->string('name')->unique(); // admin, teacher, student
+            // BẮT BUỘC: dùng InnoDB để hỗ trợ Foreign Key
+            $table->engine = 'InnoDB';
+
+            // Primary key
+            $table->id(); // BIGINT UNSIGNED
+
+            // Tên role: admin | teacher | student
+            $table->string('name')->unique();
+
+            // Thời gian
             $table->timestamps();
         });
     }

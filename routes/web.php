@@ -1,42 +1,45 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Auth\GoogleController;
+
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
 use App\Http\Controllers\Teacher\DashboardController as TeacherDashboard;
 use App\Http\Controllers\Student\DashboardController as StudentDashboard;
-use App\Http\Controllers\Auth\GoogleController;
+
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\Teacher\LessonController;
 use App\Http\Controllers\Student\StudentCourseController;
 use App\Http\Controllers\Student\StudentLessonController;
-use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
-use App\Http\Controllers\Student\DashboardController;
 
 /*
-|-------------------------------------------------------------------------- 
-| DASHBOARD (redirect theo role)
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
+| ROOT – REDIRECT THEO ROLE (CHỈ 1 NƠI DUY NHẤT)
+|--------------------------------------------------------------------------
 */
-Route::get('/dashboard', function () {
-    return match (auth()->user()->role) {
+Route::get('/', function () {
+
+    if (!Auth::check()) {
+        return redirect()->route('login');
+    }
+
+    $user = Auth::user()->load('role');
+
+    return match ($user->role->name) {
         'admin'   => redirect()->route('admin.dashboard'),
         'teacher' => redirect()->route('teacher.dashboard'),
-        default   => redirect()->route('student.dashboard'),
+        'student' => redirect()->_registration_or_route('student.dashboard'),
     };
-})->middleware('auth')->name('dashboard');
+
+})->middleware('auth');
 
 /*
-|-------------------------------------------------------------------------- 
-| ROOT
-|-------------------------------------------------------------------------- 
-*/
-Route::get('/', fn () => redirect()->route('dashboard'));
-
-/*
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
 | PROFILE
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -45,9 +48,9 @@ Route::middleware('auth')->group(function () {
 });
 
 /*
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
 | ADMIN
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'role:admin'])
     ->prefix('admin')
@@ -57,9 +60,9 @@ Route::middleware(['auth', 'role:admin'])
     });
 
 /*
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
 | TEACHER
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'role:teacher'])
     ->prefix('teacher')
@@ -75,54 +78,48 @@ Route::middleware(['auth', 'role:teacher'])
             ->except(['show']);
     });
 
-
 /*
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
 | STUDENT
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
 */
-
-
 Route::middleware(['auth', 'role:student'])
     ->prefix('student')
     ->name('student.')
     ->group(function () {
 
-        // Dashboard
-        Route::get('/dashboard', [DashboardController::class, 'index'])
+        Route::get('/dashboard', [StudentDashboard::class, 'index'])
             ->name('dashboard');
 
-        // Khóa học đã đăng ký
         Route::get('/courses', [StudentCourseController::class, 'index'])
             ->name('courses.index');
 
-        // Xem chi tiết khóa học
         Route::get('/courses/{course}', [StudentCourseController::class, 'show'])
             ->name('courses.show');
 
-        // Khám phá khóa học (CHÍNH LÀ CÁI BỊ THIẾU)
         Route::get('/explore', [StudentCourseController::class, 'explore'])
             ->name('explore');
 
-        // Đăng ký khóa học
         Route::post('/courses/{course}/enroll', [StudentCourseController::class, 'enroll'])
             ->name('courses.enroll');
 
-        // Xem bài học
-        Route::get('/courses/{course}/lessons/{lesson}',
-            [StudentLessonController::class, 'show'])
-            ->name('lessons.show');
+        Route::get(
+            '/courses/{course}/lessons/{lesson}',
+            [StudentLessonController::class, 'show']
+        )->name('lessons.show');
     });
 
-
 /*
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
 | GOOGLE LOGIN
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
 */
 Route::middleware('guest')->group(function () {
-    Route::get('/auth/google', [GoogleController::class, 'redirect'])->name('google.login');
-    Route::get('/auth/google/callback', [GoogleController::class, 'callback'])->name('google.callback');
+    Route::get('/auth/google', [GoogleController::class, 'redirect'])
+        ->name('google.login');
+
+    Route::get('/auth/google/callback', [GoogleController::class, 'callback'])
+        ->name('google.callback');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
