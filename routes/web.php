@@ -20,21 +20,22 @@ use App\Http\Controllers\Student\StudentLessonController;
 | ROOT – REDIRECT THEO ROLE (CHỈ 1 NƠI DUY NHẤT)
 |--------------------------------------------------------------------------
 */
-Route::get('/', function () {
 
-    if (!Auth::check()) {
-        return redirect()->route('login');
+Route::get('/', function () {
+    if (Auth::check()) {
+        $user = Auth::user();
+        $user->load('role');
+
+        return match ($user->role->name) {
+            'admin'   => redirect()->route('admin.dashboard'),
+            'teacher' => redirect()->route('teacher.dashboard'),
+            'student' => redirect()->route('student.dashboard'),
+        };
     }
 
-    $user = Auth::user()->load('role');
+    return view('landing');
+})->name('landing');
 
-    return match ($user->role->name) {
-        'admin'   => redirect()->route('admin.dashboard'),
-        'teacher' => redirect()->route('teacher.dashboard'),
-        'student' => redirect()->_registration_or_route('student.dashboard'),
-    };
-
-})->middleware('auth');
 
 /*
 |--------------------------------------------------------------------------
