@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use Illuminate\Http\RedirectResponse;
 
 use App\Models\Course;
 use Illuminate\Http\Request;
@@ -35,5 +36,18 @@ class CourseController extends Controller
         return redirect()
             ->route('teacher.courses.index')
             ->with('success', 'Tạo khóa học thành công');
+    }
+    public function destroy(Course $course): RedirectResponse
+    {
+        // (tuỳ chọn) kiểm tra quyền sở hữu
+        if ($course->teacher_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $course->delete();
+
+        return redirect()
+            ->route('teacher.courses.index')
+            ->with('success', 'Xóa khóa học thành công');
     }
 }
