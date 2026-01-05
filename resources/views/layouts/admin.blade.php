@@ -16,7 +16,7 @@
         </div>
 
         {{-- CONTENT --}}
-        <div class="col-10 p-4">
+        <div class="col-10 p-4 bg-light">
             @yield('content')
         </div>
 

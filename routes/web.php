@@ -15,21 +15,25 @@ use App\Http\Controllers\Teacher\LessonController;
 use App\Http\Controllers\Student\StudentCourseController;
 use App\Http\Controllers\Student\StudentLessonController;
 
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\DashboardController;
+
+use App\Http\Controllers\Admin\CourseController as AdminCourseController;
+
 /*
 |--------------------------------------------------------------------------
-| ROOT – REDIRECT THEO ROLE (CHỈ 1 NƠI DUY NHẤT)
+| ROOT – LANDING PAGE (PUBLIC)
 |--------------------------------------------------------------------------
 */
-
 Route::get('/', function () {
     if (Auth::check()) {
-        $user = Auth::user();
-        $user->load('role');
+        $user = Auth::user()->load('role');
 
-        return match ($user->role->name) {
+        return match ($user->role->name ?? null) {
             'admin'   => redirect()->route('admin.dashboard'),
             'teacher' => redirect()->route('teacher.dashboard'),
             'student' => redirect()->route('student.dashboard'),
+            default   => abort(403),
         };
     }
 
@@ -47,17 +51,47 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+Route::middleware(['auth', 'admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
 
+        Route::get('/dashboard', [DashboardController::class, 'index'])
+            ->name('dashboard');
+
+        Route::resource('users', UserController::class);
+        Route::resource('courses', CourseController::class);
+    });
 /*
 |--------------------------------------------------------------------------
 | ADMIN
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:admin'])
+Route::prefix('admin')
+    ->name('admin.')
+    ->middleware(['auth', 'role:admin'])
+    ->group(function () {
+
+        Route::get('/dashboard', [AdminDashboard::class, 'index'])
+            ->name('dashboard');
+
+        Route::resource('users', UserController::class);
+    });
+Route::middleware(['auth', 'admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-        Route::get('/dashboard', [AdminDashboard::class, 'index'])->name('dashboard');
+        Route::resource('courses', AdminCourseController::class)
+            ->only(['index', 'destroy']);
+    });
+
+
+Route::middleware(['auth', 'admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('/users', [UserController::class, 'index'])
+            ->name('users.index');
     });
 
 /*
@@ -65,9 +99,9 @@ Route::middleware(['auth', 'role:admin'])
 | TEACHER
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:teacher'])
-    ->prefix('teacher')
+Route::prefix('teacher')
     ->name('teacher.')
+    ->middleware(['auth', 'role:teacher'])
     ->group(function () {
 
         Route::get('/dashboard', [TeacherDashboard::class, 'index'])
@@ -84,9 +118,9 @@ Route::middleware(['auth', 'role:teacher'])
 | STUDENT
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:student'])
-    ->prefix('student')
+Route::prefix('student')
     ->name('student.')
+    ->middleware(['auth', 'role:student'])
     ->group(function () {
 
         Route::get('/dashboard', [StudentDashboard::class, 'index'])

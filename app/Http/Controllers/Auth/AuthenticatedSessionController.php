@@ -29,18 +29,17 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        // 🔴 LOAD ROLE CHO CHẮC
-        $user = Auth::user()->load('role');
+        // ✅ LẤY USER (KHÔNG LOAD ROLE)
+        $user = Auth::user();
 
-        // 🔴 REDIRECT THEO ROLE (ĐÚNG)
-        return match ($user->role->name) {
-            'admin'   => redirect()->route('admin.dashboard'),
-            'teacher' => redirect()->route('teacher.dashboard'),
-            'student' => redirect()->route('student.dashboard'),
-            default   => abort(403, 'Role không hợp lệ'),
+        // ✅ REDIRECT THEO role_id
+        return match ($user->role_id) {
+            1       => redirect()->route('admin.dashboard'),
+            2       => redirect()->route('teacher.dashboard'),
+            default => redirect()->route('student.dashboard'),
         };
     }
-
+    
     public function destroy(Request $request)
     {
         Auth::logout();
