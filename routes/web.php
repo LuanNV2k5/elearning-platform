@@ -94,6 +94,14 @@ Route::middleware(['auth', 'admin'])
             ->name('users.index');
     });
 
+Route::middleware(['auth', 'admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'index'])
+            ->name('dashboard');
+    });
+
 /*
 |--------------------------------------------------------------------------
 | TEACHER
