@@ -70,4 +70,40 @@ class LessonController extends Controller
 
         return $matches[1] ?? null;
     }
+    public function edit(Course $course, Lesson $lesson)
+    {
+        // đảm bảo lesson thuộc course
+        $lesson = $course->lessons()
+            ->where('lessons.id', $lesson->id)
+            ->firstOrFail();
+
+        return view('teacher.lessons.edit', compact('course', 'lesson'));
+    }
+
+    public function update(Request $request, Course $course, Lesson $lesson)
+    {
+        $lesson = $course->lessons()
+            ->where('lessons.id', $lesson->id)
+            ->firstOrFail();
+
+        $data = $request->validate([
+            'title'        => 'required|string|max:255',
+            'description'  => 'nullable|string',
+            'youtube_id'   => 'nullable|string',
+            'pdf'          => 'nullable|file|mimes:pdf',
+        ]);
+
+        // upload pdf mới
+        if ($request->hasFile('pdf')) {
+            $data['pdf_path'] = $request
+                ->file('pdf')
+                ->store('lessons', 'public');
+        }
+
+        $lesson->update($data);
+
+        return redirect()
+            ->route('teacher.courses.edit', $course)
+            ->with('success', '✅ Cập nhật bài học thành công');
+    }
 }

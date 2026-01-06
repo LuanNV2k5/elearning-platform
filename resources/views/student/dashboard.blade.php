@@ -7,10 +7,11 @@
 
     $student = auth()->user();
 
-    // Lấy các khóa học sinh viên đã ghi danh (course_user)
+    // Lấy các khóa học sinh viên đã ghi danh
     $courses = Course::join('course_user', 'courses.id', '=', 'course_user.course_id')
         ->where('course_user.user_id', $student->id)
         ->select('courses.*')
+        ->with('quiz') // 🔴 QUAN TRỌNG: load quiz
         ->get();
 @endphp
 
@@ -29,7 +30,7 @@
     </div>
 </div>
 
-{{-- ====== THỐNG KÊ NHANH ====== --}}
+{{-- ====== THỐNG KÊ ====== --}}
 <div class="card mb-4">
     <div class="card-header">
         📊 Thống kê
@@ -55,6 +56,7 @@
                     <th>Tên khóa học</th>
                     <th>Giá</th>
                     <th>Ngày tham gia</th>
+                    <th>Hành động</th> {{-- ✅ THÊM --}}
                 </tr>
             </thead>
             <tbody>
@@ -63,13 +65,23 @@
                         <td>{{ $index + 1 }}</td>
                         <td>{{ $course->title }}</td>
                         <td>{{ number_format($course->price) }} đ</td>
+                        <td>{{ $course->created_at->format('d/m/Y') }}</td>
                         <td>
-                            {{ $course->created_at->format('d/m/Y') }}
+                            @if($course->quiz)
+                                <a href="{{ route('student.courses.quiz.show', $course) }}"
+                                   class="btn btn-sm btn-success">
+                                    🧪 Làm bài kiểm tra
+                                </a>
+                            @else
+                                <span class="text-muted">
+                                    Chưa có bài kiểm tra
+                                </span>
+                            @endif
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4" class="text-center">
+                        <td colspan="5" class="text-center">
                             Bạn chưa tham gia khóa học nào
                         </td>
                     </tr>
@@ -78,4 +90,5 @@
         </table>
     </div>
 </div>
+
 @endsection

@@ -17,9 +17,23 @@ class StudentCourseController extends Controller
 
     public function show(Course $course)
     {
-        $lessons = $course->lessons()->orderBy('order')->get();
+         $user = auth()->user();
 
-        return view('student.courses.show', compact('course', 'lessons'));
+    // 👉 THÊM DÒNG NÀY
+    $lessons = $course->lessons()->orderBy('order')->get();
+
+    $progress = $user->enrolledCourses()
+        ->where('course_id', $course->id)
+        ->first()
+        ->pivot
+        ->progress ?? 0;
+
+    // 👉 THÊM 'lessons' VÀO VIEW
+    return view('student.courses.show', compact(
+        'course',
+        'lessons',
+        'progress'
+    ));
     }
 
     public function explore()
@@ -39,4 +53,17 @@ class StudentCourseController extends Controller
             ->route('student.courses.index')
             ->with('success', 'Đăng ký khóa học thành công');
     }
+    public function complete(Course $course)
+{
+    auth()->user()
+        ->enrolledCourses()
+        ->updateExistingPivot($course->id, [
+            'progress' => 100
+        ]);
+
+    return redirect()
+        ->route('student.courses.show', $course)
+        ->with('success', '🎉 Bạn đã hoàn thành khoá học!');
+}
+
 }

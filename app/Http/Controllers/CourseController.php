@@ -50,4 +50,29 @@ class CourseController extends Controller
             ->route('teacher.courses.index')
             ->with('success', 'Xóa khóa học thành công');
     }
+    public function edit(Course $course)
+    {
+        return view('teacher.courses.edit', compact('course'));
+    }
+    public function update(Request $request, Course $course)
+    {
+        $data = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'thumbnail' => 'nullable|image',
+            'status' => 'required|in:draft,published',
+        ]);
+
+        if ($request->hasFile('thumbnail')) {
+            $data['thumbnail'] = $request
+                ->file('thumbnail')
+                ->store('courses', 'public');
+        }
+
+        $course->update($data);
+
+        return redirect()
+            ->route('teacher.courses.edit', $course)
+            ->with('success', 'Cập nhật khóa học thành công');
+    }
 }

@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+use App\Models\Quiz;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
@@ -29,4 +30,9 @@ class Course extends Model
     {
         return $this->belongsToMany(User::class, 'course_user');
     }
+    public function quiz()
+    {
+        return $this->hasOne(\App\Models\Quiz::class);
+    }
+
 }

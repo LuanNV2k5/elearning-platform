@@ -20,6 +20,12 @@ use App\Http\Controllers\Admin\DashboardController;
 
 use App\Http\Controllers\Admin\CourseController as AdminCourseController;
 
+use App\Http\Controllers\Teacher\CourseQuizController;
+use App\Http\Controllers\Teacher\QuestionController;
+use App\Http\Controllers\Student\QuizController;
+
+use App\Http\Controllers\Teacher\LessonController as TeacherLessonController;
+
 /*
 |--------------------------------------------------------------------------
 | ROOT – LANDING PAGE (PUBLIC)
@@ -119,6 +125,30 @@ Route::prefix('teacher')
 
         Route::resource('courses.lessons', LessonController::class)
             ->except(['show']);
+            Route::get('courses/{course}/quiz', [CourseQuizController::class, 'show'])
+    ->name('courses.quiz.show');
+
+        Route::get('courses/{course}/quiz/create', [CourseQuizController::class, 'create'])
+            ->name('courses.quiz.create');
+
+        Route::post('courses/{course}/quiz', [CourseQuizController::class, 'store'])
+            ->name('courses.quiz.store');
+
+        Route::get('courses/{course}/quiz/edit', [CourseQuizController::class, 'edit'])
+            ->name('courses.quiz.edit');
+
+        Route::put('courses/{course}/quiz', [CourseQuizController::class, 'update'])
+            ->name('courses.quiz.update');
+        Route::get('courses/{course}/quiz/questions', [QuestionController::class, 'index'])
+    ->name('courses.quiz.questions.index');
+
+Route::get('courses/{course}/quiz/questions/create', [QuestionController::class, 'create'])
+    ->name('courses.quiz.questions.create');
+
+Route::post('courses/{course}/quiz/questions', [QuestionController::class, 'store'])
+    ->name('courses.quiz.questions.store');
+
+
     });
 Route::get('/dashboard', function () {
     return match (auth()->user()->role_id) {
@@ -128,7 +158,38 @@ Route::get('/dashboard', function () {
         default => abort(403),
     };
 })->middleware('auth')->name('dashboard');
+Route::put(
+    '/teacher/courses/{course}',
+    [CourseController::class, 'update']
+)->name('teacher.courses.update');
+Route::prefix('teacher')->name('teacher.')->middleware('auth')->group(function () {
+    Route::get(
+        '/courses/{course}/lessons/{lesson}/edit',
+        [TeacherLessonController::class, 'edit']
+    )->name('lessons.edit');
 
+    Route::put(
+        '/courses/{course}/lessons/{lesson}',
+        [TeacherLessonController::class, 'update']
+    )->name('lessons.update');
+});
+Route::middleware(['auth', 'role:teacher'])
+    ->prefix('teacher')
+    ->name('teacher.')
+    ->group(function () {
+
+        // ✏️ SỬA BÀI HỌC
+        Route::get(
+            '/courses/{course}/lessons/{lesson}/edit',
+            [TeacherLessonController::class, 'edit']
+        )->name('lessons.edit');
+
+        // 💾 CẬP NHẬT BÀI HỌC
+        Route::put(
+            '/courses/{course}/lessons/{lesson}',
+            [TeacherLessonController::class, 'update']
+        )->name('lessons.update');
+    });
 /*
 |--------------------------------------------------------------------------
 | STUDENT
@@ -158,7 +219,23 @@ Route::prefix('student')
             '/courses/{course}/lessons/{lesson}',
             [StudentLessonController::class, 'show']
         )->name('lessons.show');
+        Route::get('courses/{course}/quiz', [QuizController::class, 'show'])
+    ->name('courses.quiz.show');
+
+Route::post('courses/{course}/quiz/submit', [QuizController::class, 'submit'])
+    ->name('courses.quiz.submit');
+
     });
+
+Route::post(
+    '/lessons/{lesson}/complete',
+    [StudentLessonController::class, 'complete']
+)->name('lessons.complete');
+
+Route::post(
+    '/student/courses/{course}/complete',
+    [StudentCourseController::class, 'complete']
+)->name('student.courses.complete');
 
 /*
 |--------------------------------------------------------------------------

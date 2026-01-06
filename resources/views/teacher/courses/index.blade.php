@@ -11,13 +11,13 @@
     @if($courses->isEmpty())
         <p>Chưa có khóa học nào.</p>
     @else
-        <table class="table table-bordered">
+        <table class="table table-bordered align-middle">
             <thead>
             <tr>
                 <th>#</th>
                 <th>Tên khóa học</th>
                 <th>Giá</th>
-                <th>Hành động</th>
+                <th width="320">Hành động</th>
             </tr>
             </thead>
             <tbody>
@@ -27,23 +27,32 @@
                     <td>{{ $course->title }}</td>
                     <td>{{ number_format($course->price) }} đ</td>
                     <td>
+                        {{-- BÀI HỌC --}}
                         <a href="{{ route('teacher.courses.lessons.index', $course) }}"
                            class="btn btn-sm btn-primary">
                             📚 Bài học
                         </a>
-                    
-                        <a href="{{ route('teacher.courses.edit', $course) }}"
+
+                        {{-- BÀI KIỂM TRA (BƯỚC 3) --}}
+                        <a href="{{ route('teacher.courses.quiz.show', $course) }}"
                            class="btn btn-sm btn-warning">
-                            Sửa
+                            🧪 {{ $course->quiz ? 'Quản lý quiz' : 'Tạo quiz' }}
                         </a>
-                    
+
+                        {{-- SỬA --}}
+                        <a href="{{ route('teacher.courses.edit', $course) }}"
+                           class="btn btn-sm btn-secondary">
+                            ✏️ Sửa
+                        </a>
+
+                        {{-- XÓA --}}
                         <form action="{{ route('teacher.courses.destroy', $course) }}"
                               method="POST" class="d-inline">
                             @csrf
                             @method('DELETE')
                             <button class="btn btn-sm btn-danger"
                                     onclick="return confirm('Xóa khóa học?')">
-                                Xóa
+                                🗑 Xóa
                             </button>
                         </form>
                     </td>
