@@ -11,21 +11,14 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        // ====== THỐNG KÊ TỔNG QUAN ======
         $totalUsers    = User::count();
         $totalAdmins   = User::where('role_id', 1)->count();
         $totalTeachers = User::where('role_id', 2)->count();
         $totalStudents = User::where('role_id', 3)->count();
-
         $totalCourses  = Course::count();
 
-        return view('admin.dashboard', compact(
-            'totalUsers',
-            'totalAdmins',
-            'totalTeachers',
-            'totalStudents',
-            'totalCourses'
-        ));
-
+        // ====== THỐNG KÊ SỐ KHÓA HỌC THEO GIÁO VIÊN ======
         $coursesByTeacher = User::where('role_id', 2)
             ->leftJoin('courses', 'users.id', '=', 'courses.teacher_id')
             ->select(
@@ -37,6 +30,7 @@ class DashboardController extends Controller
             ->groupBy('users.id', 'users.name', 'users.email')
             ->get();
 
+        // ====== TRẢ VIEW ADMIN DASHBOARD (CHỈ 1 RETURN) ======
         return view('admin.dashboard', compact(
             'totalUsers',
             'totalAdmins',

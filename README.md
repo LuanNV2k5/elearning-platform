@@ -60,8 +60,9 @@ phù hợp cho cả **đồ án học tập** lẫn **phát triển thành sản
 
 ## 👤 Tác giả
 
-**Phát Nguyễn**  
-Sinh viên / Nhà phát triển web  
+**Nguyễn Văn Luân**
+**Nguyễn Xuân Phát**
+
 📍 Việt Nam
 
 ---

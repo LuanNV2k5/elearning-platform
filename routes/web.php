@@ -120,6 +120,14 @@ Route::prefix('teacher')
         Route::resource('courses.lessons', LessonController::class)
             ->except(['show']);
     });
+Route::get('/dashboard', function () {
+    return match (auth()->user()->role_id) {
+        1 => redirect()->route('admin.dashboard'),
+        2 => redirect()->route('teacher.dashboard'),
+        3 => redirect()->route('student.dashboard'),
+        default => abort(403),
+    };
+})->middleware('auth')->name('dashboard');
 
 /*
 |--------------------------------------------------------------------------
