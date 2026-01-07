@@ -118,7 +118,17 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/courses/{course}/students', [AdminCourseController::class, 'students'])
             ->name('courses.students');
     });
+Route::middleware(['auth', 'role:admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
 
+        Route::get('/users', [UserController::class, 'index'])
+            ->name('users.index');
+
+        Route::delete('/users/{user}', [UserController::class, 'destroy'])
+            ->name('users.destroy');
+    });
 /*
 |--------------------------------------------------------------------------
 | TEACHER
