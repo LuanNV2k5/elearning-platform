@@ -60,11 +60,19 @@ class LessonController extends Controller
        HELPER
     ========================================= */
 
-    private function extractYoutubeId(string $url): ?string
+    private function extractYoutubeId($input)
     {
+        if (!$input) return null;
+
+        // Nếu nhập thẳng video ID
+        if (preg_match('/^[a-zA-Z0-9_-]{11}$/', $input)) {
+            return $input;
+        }
+
+        // Các dạng link YouTube phổ biến
         preg_match(
-            '%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/|youtube\.com/shorts/)([^"&?/ ]{11})%i',
-            $url,
+            '/(?:youtube\.com\/(?:.*v=|v\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/',
+            $input,
             $matches
         );
 
@@ -81,29 +89,46 @@ class LessonController extends Controller
     }
 
     public function update(Request $request, Course $course, Lesson $lesson)
-    {
-        $lesson = $course->lessons()
-            ->where('lessons.id', $lesson->id)
-            ->firstOrFail();
+{
+    // Đảm bảo lesson thuộc đúng course
+    $lesson = $course->lessons()
+        ->where('lessons.id', $lesson->id)
+        ->firstOrFail();
 
-        $data = $request->validate([
-            'title'        => 'required|string|max:255',
-            'description'  => 'nullable|string',
-            'youtube_id'   => 'nullable|string',
-            'pdf'          => 'nullable|file|mimes:pdf',
-        ]);
+    // Validate dữ liệu
+    $data = $request->validate([
+        'title'        => 'required|string|max:255',
+        'description'  => 'nullable|string',
+        'youtube_id'   => 'nullable|string',
+        'pdf'          => 'nullable|file|mimes:pdf',
+    ]);
 
-        // upload pdf mới
-        if ($request->hasFile('pdf')) {
-            $data['pdf_path'] = $request
-                ->file('pdf')
-                ->store('lessons', 'public');
-        }
+    /* ================= YOUTUBE LINK → VIDEO ID ================= */
 
-        $lesson->update($data);
+    $data['youtube_id'] = $this->extractYoutubeId($request->youtube_id);
 
-        return redirect()
-            ->route('teacher.courses.edit', $course)
-            ->with('success', '✅ Cập nhật bài học thành công');
+    // Nếu có nhập nhưng link sai → báo lỗi
+    if ($request->youtube_id && !$data['youtube_id']) {
+        return back()
+            ->withErrors(['youtube_id' => 'Link YouTube không hợp lệ'])
+            ->withInput();
     }
+
+    /* ================= UPLOAD PDF (NẾU CÓ) ================= */
+
+    if ($request->hasFile('pdf')) {
+        $data['pdf_path'] = $request
+            ->file('pdf')
+            ->store('lessons', 'public');
+    }
+
+    /* ================= UPDATE DB ================= */
+
+    $lesson->update($data);
+
+    return redirect()
+        ->route('teacher.courses.edit', $course)
+        ->with('success', '✅ Cập nhật bài học thành công');
+}
+
 }
