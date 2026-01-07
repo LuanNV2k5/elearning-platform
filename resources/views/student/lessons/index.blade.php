@@ -28,6 +28,34 @@
                     </div>
                 </li>
             @endforeach
+            @foreach($course->lessons as $index => $lesson)
+
+@php
+    $prevLesson = $course->lessons[$index - 1] ?? null;
+
+    $locked = $prevLesson &&
+        !auth()->user()
+            ->completedLessons
+            ->contains($prevLesson->id);
+@endphp
+
+<tr>
+    <td>{{ $lesson->title }}</td>
+
+    <td>
+        @if($locked)
+            🔒 Chưa mở
+        @else
+            <a href="{{ route('student.lessons.show', [$course, $lesson]) }}"
+               class="btn btn-sm btn-primary">
+                Học bài
+            </a>
+        @endif
+    </td>
+</tr>
+
+@endforeach
+
         </ul>
     @endif
 @endsection
