@@ -107,6 +107,17 @@ Route::middleware(['auth', 'admin'])
         Route::get('/dashboard', [DashboardController::class, 'index'])
             ->name('dashboard');
     });
+Route::middleware(['auth', 'role:admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+
+        Route::get('/courses', [AdminCourseController::class, 'index'])
+            ->name('courses.index');
+
+        Route::get('/courses/{course}/students', [AdminCourseController::class, 'students'])
+            ->name('courses.students');
+    });
 
 /*
 |--------------------------------------------------------------------------

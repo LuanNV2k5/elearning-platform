@@ -10,6 +10,7 @@
                 <th align="left">Tên khóa học</th>
                 <th align="left">Giá</th>
                 <th align="left">Giáo viên</th>
+                <th align="center">Số người học</th>
                 <th align="center">Hành động</th>
             </tr>
         </thead>
@@ -19,6 +20,13 @@
                     <td>{{ $course->title }}</td>
                     <td>{{ number_format($course->price) }} đ</td>
                     <td>{{ $course->teacher->name ?? 'N/A' }}</td>
+
+                    {{-- SỐ NGƯỜI HỌC --}}
+                    <td align="center">
+                        <strong>{{ $course->students_count }}</strong>
+                    </td>
+
+                    {{-- HÀNH ĐỘNG --}}
                     <td align="center">
                         <form method="POST"
                               action="{{ route('admin.courses.destroy', $course) }}">
@@ -34,7 +42,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="4" align="center">Chưa có khóa học nào</td>
+                    <td colspan="5" align="center">Chưa có khóa học nào</td>
                 </tr>
             @endforelse
         </tbody>

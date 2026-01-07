@@ -4,15 +4,16 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Course;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 
 class CourseController extends Controller
 {
     public function index()
     {
-        // ADMIN: xem tất cả khóa học
-        $courses = Course::with('teacher')->get();
+        // ADMIN: xem tất cả khóa học + giáo viên + số người học
+        $courses = Course::with('teacher')
+            ->withCount('students')   // ✅ DÒNG QUYẾT ĐỊNH
+            ->get();
 
         return view('admin.courses.index', compact('courses'));
     }
