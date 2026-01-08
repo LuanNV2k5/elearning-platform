@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\Lesson;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class LessonController extends Controller
 {
@@ -129,6 +130,30 @@ class LessonController extends Controller
     return redirect()
         ->route('teacher.courses.edit', $course)
         ->with('success', '✅ Cập nhật bài học thành công');
+}
+    public function startLesson(Lesson $lesson)
+{
+    $user = Auth::user();
+
+    $lesson->students()->syncWithoutDetaching([
+        $user->id => [
+            'progress' => 0,
+            'completed' => false,
+        ]
+    ]);
+}
+    public function updateProgress(Request $request, Lesson $lesson)
+{
+    $user = auth()->user();
+
+    $progress = min(100, max(0, (int) $request->progress));
+
+    $lesson->students()->updateExistingPivot($user->id, [
+        'progress' => $progress,
+        'completed' => $progress === 100,
+    ]);
+
+    return response()->json(['success' => true]);
 }
 
 }

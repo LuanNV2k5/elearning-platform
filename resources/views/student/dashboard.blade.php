@@ -3,7 +3,6 @@
 @section('content')
 @php
     use App\Models\Course;
-    use Illuminate\Support\Facades\DB;
 
     $student = auth()->user();
 
@@ -11,7 +10,7 @@
     $courses = Course::join('course_user', 'courses.id', '=', 'course_user.course_id')
         ->where('course_user.user_id', $student->id)
         ->select('courses.*')
-        ->with('quiz') // 🔴 QUAN TRỌNG: load quiz
+        ->with('quiz') // load quiz
         ->get();
 @endphp
 
@@ -56,25 +55,47 @@
                     <th>Tên khóa học</th>
                     <th>Giá</th>
                     <th>Ngày tham gia</th>
-                    <th>Hành động</th> {{-- ✅ THÊM --}}
+                    <th>Trạng thái</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse ($courses as $index => $course)
+                    @php
+                        // Lần làm quiz gần nhất của user cho course này
+                        $attempt = $student->quizAttempts()
+                            ->whereHas('quiz', fn($q) => $q->where('course_id', $course->id))
+                            ->latest()
+                            ->first();
+                    @endphp
+
                     <tr>
                         <td>{{ $index + 1 }}</td>
                         <td>{{ $course->title }}</td>
                         <td>{{ number_format($course->price) }} đ</td>
                         <td>{{ $course->created_at->format('d/m/Y') }}</td>
                         <td>
-                            @if($course->quiz)
-                                <a href="{{ route('student.courses.quiz.show', $course) }}"
-                                   class="btn btn-sm btn-success">
-                                    🧪 Làm bài kiểm tra
-                                </a>
-                            @else
-                                <span class="text-muted">
+                            {{-- CHƯA CÓ QUIZ --}}
+                            @if(!$course->quiz)
+                                <span class="badge bg-secondary">
                                     Chưa có bài kiểm tra
+                                </span>
+
+                            {{-- ĐÃ PASS QUIZ --}}
+                            @elseif($attempt && $attempt->status === 'passed')
+                                <span class="badge bg-success">
+                                    🎉 Hoàn thành khóa học
+                                </span>
+
+                            {{-- ĐÃ LÀM QUIZ NHƯNG FAIL --}}
+                            @elseif($attempt && $attempt->status === 'failed')
+                                <span class="badge bg-danger">
+                                    ❌ Chưa đạt bài kiểm tra
+                                </span>
+
+                            {{-- CHƯA ĐỦ ĐIỀU KIỆN --}}
+                            @else
+                                <span class="badge bg-warning text-dark">
+                                    ⏳ Chưa đủ điều kiện làm bài kiểm tra
                                 </span>
                             @endif
                         </td>
@@ -90,5 +111,4 @@
         </table>
     </div>
 </div>
-
 @endsection

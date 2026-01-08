@@ -257,6 +257,13 @@ Route::post(
     '/student/courses/{course}/complete',
     [StudentCourseController::class, 'complete']
 )->name('student.courses.complete');
+Route::get('/student/courses/{course}/quiz',
+    [\App\Http\Controllers\Student\QuizController::class, 'show'])
+    ->name('student.courses.quiz.show');
+
+Route::post('/student/courses/{course}/quiz',
+    [\App\Http\Controllers\Student\QuizController::class, 'submit'])
+    ->name('student.courses.quiz.submit');
 
 /*
 |--------------------------------------------------------------------------

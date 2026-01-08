@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
+use App\Models\Course;
 
 class Lesson extends Model
 {
@@ -14,12 +16,14 @@ class Lesson extends Model
         'title',
         'description',
         'youtube_id',
-        'pdf_path',   // ✅ BẮT BUỘC – để lưu file PDF
+        'pdf_path',
         'order',
     ];
 
+    /* ================= RELATION ================= */
+
     /**
-     * Quan hệ: Lesson thuộc về Course
+     * Lesson thuộc về Course
      */
     public function course()
     {
@@ -27,20 +31,57 @@ class Lesson extends Model
     }
 
     /**
-     * Quan hệ: Sinh viên học bài học
+     * User học Lesson (bảng lesson_user)
+     * Lưu tiến độ theo từng bài
      */
     public function students()
     {
-        return $this->belongsToMany(User::class)
-            ->withPivot('completed', 'completed_at')
+        return $this->belongsToMany(User::class, 'lesson_user')
+            ->withPivot([
+                'progress',     // % tiến độ
+                'completed',    // true / false
+            ])
             ->withTimestamps();
     }
 
+    /* ================= ACCESSOR ================= */
+
     /**
-     * Accessor: lấy URL đầy đủ của file PDF
+     * Lấy tiến độ (%) của lesson theo user hiện tại
+     * Dùng: $lesson->progress
+     */
+    public function getProgressAttribute(): int
+    {
+        $user = auth()->user();
+
+        if (!$user) {
+            return 0;
+        }
+
+        // đảm bảo students đã load
+        if (!$this->relationLoaded('students')) {
+            $this->load('students');
+        }
+
+        return $this->students
+            ->where('id', $user->id)
+            ->first()?->pivot->progress ?? 0;
+    }
+
+    /**
+     * Kiểm tra user hiện tại đã hoàn thành lesson chưa
+     * Dùng: $lesson->is_completed
+     */
+    public function getIsCompletedAttribute(): bool
+    {
+        return $this->progress === 100;
+    }
+
+    /**
+     * URL đầy đủ của file PDF
      * Dùng: $lesson->pdf_url
      */
-    public function getPdfUrlAttribute()
+    public function getPdfUrlAttribute(): ?string
     {
         return $this->pdf_path
             ? asset('storage/' . $this->pdf_path)

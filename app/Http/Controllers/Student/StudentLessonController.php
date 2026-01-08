@@ -5,65 +5,90 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\Lesson;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class StudentLessonController extends Controller
 {
+    /**
+     * Hiển thị bài học + tiến độ hiện tại
+     * (PHẦN D)
+     */
     public function show(Course $course, Lesson $lesson)
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
-        // ✅ KIỂM TRA ĐÃ ĐĂNG KÝ KHOÁ HỌC CHƯA
+        // 1️⃣ Kiểm tra đã đăng ký khóa học
         if (!$user->enrolledCourses->contains($course->id)) {
             abort(403, 'Bạn chưa đăng ký khóa học này');
         }
 
-        // ✅ ĐẢM BẢO LESSON THUỘC COURSE (FIX LỖI PDF KHÔNG HIỆN)
+        // 2️⃣ Đảm bảo lesson thuộc course
         $lesson = $course->lessons()
             ->where('lessons.id', $lesson->id)
             ->firstOrFail();
 
-        // ✅ ĐÁNH DẤU BÀI HỌC ĐÃ HOÀN THÀNH (CHỈ CẦN CLICK)
-        $user->completedLessons()->syncWithoutDetaching([
-            $lesson->id => [
-                'completed'    => true,
-                'completed_at' => now(),
+        // 3️⃣ Tạo bản ghi lesson_user nếu chưa có (bắt đầu học)
+        $lesson->students()->syncWithoutDetaching([
+            $user->id => [
+                'progress'  => 100,
+                'completed' => true,
             ]
         ]);
 
-        // ✅ TÍNH PROGRESS CHUNG KHOÁ HỌC
-        $lessonIds = $course->lessons()->pluck('id');
+        // 4️⃣ Lấy progress hiện tại
+        $progress = $user->lessonProgress($lesson);
 
-        $totalLessons = $lessonIds->count();
-
-        $completedLessons = $user->completedLessons()
-            ->whereIn('lesson_id', $lessonIds)
-            ->count();
-
-        $progress = $totalLessons > 0
-            ? round(($completedLessons / $totalLessons) * 100)
-            : 0;
-
-        // ✅ CẬP NHẬT PROGRESS VÀO course_user
-        $user->enrolledCourses()
-            ->updateExistingPivot($course->id, [
-                'progress' => $progress
-            ]);
-
-        return view('student.lessons.show', compact('course', 'lesson'));
+        return view('student.lessons.show', compact(
+            'course',
+            'lesson',
+            'progress'
+        ));
     }
 
-    // ⚠️ KHÔNG BẮT BUỘC DÙNG NỮA (GIỮ LẠI CŨNG KHÔNG SAO)
-    public function complete(Lesson $lesson)
+    /**
+     * Cập nhật tiến độ bài học (%)
+     * (PHẦN C)
+     */
+    public function updateProgress(Request $request, Course $course, Lesson $lesson)
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
-        $user->completedLessons()->syncWithoutDetaching([
-            $lesson->id => [
-                'completed' => true,
-                'completed_at' => now(),
-            ]
+        // Kiểm tra lesson thuộc course
+        if ($lesson->course_id !== $course->id) {
+            abort(404);
+        }
+
+        $progress = min(100, max(0, (int) $request->progress));
+
+        $lesson->students()->updateExistingPivot($user->id, [
+            'progress'  => $progress,
+            'completed' => $progress === 100,
         ]);
 
-        return back()->with('success', 'Đã hoàn thành bài học');
+        return response()->json([
+            'success'  => true,
+            'progress' => $progress,
+        ]);
+    }
+
+    /**
+     * Đánh dấu hoàn thành bài học (nút bấm)
+     * (PHẦN C)
+     */
+    public function complete(Course $course, Lesson $lesson)
+    {
+        $user = Auth::user();
+
+        if ($lesson->course_id !== $course->id) {
+            abort(404);
+        }
+
+        $lesson->students()->updateExistingPivot($user->id, [
+            'progress'  => 100,
+            'completed' => true,
+        ]);
+
+        return back()->with('success', '✅ Đã hoàn thành bài học');
     }
 }
