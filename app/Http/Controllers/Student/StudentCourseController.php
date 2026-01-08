@@ -8,34 +8,60 @@ use Illuminate\Support\Facades\Auth;
 
 class StudentCourseController extends Controller
 {
+    /**
+     * Danh sách khóa học đã đăng ký
+     */
     public function index()
     {
-        $courses = auth()->user()->enrolledCourses;
+        $courses = Auth::user()->enrolledCourses;
 
         return view('student.courses.index', compact('courses'));
     }
 
+    /**
+     * Chi tiết khóa học + TIẾN ĐỘ (PHẦN E)
+     */
     public function show(Course $course)
     {
-         $user = auth()->user();
+        $user = Auth::user();
 
-    // 👉 THÊM DÒNG NÀY
-    $lessons = $course->lessons()->orderBy('order')->get();
+        // 1️⃣ Kiểm tra đã đăng ký khóa học
+        if (!$user->enrolledCourses->contains($course->id)) {
+            abort(403, 'Bạn chưa đăng ký khóa học này');
+        }
 
-    $progress = $user->enrolledCourses()
-        ->where('course_id', $course->id)
-        ->first()
-        ->pivot
-        ->progress ?? 0;
+        // 2️⃣ Lấy danh sách bài học
+        $lessons = $course->lessons()
+            ->orderBy('order')
+            ->get();
 
-    // 👉 THÊM 'lessons' VÀO VIEW
-    return view('student.courses.show', compact(
-        'course',
-        'lessons',
-        'progress'
-    ));
+        $totalLessons = $lessons->count();
+
+        // 3️⃣ Đếm số bài đã hoàn thành (lesson_user)
+        $completedLessons = $course->lessons()
+            ->whereHas('students', function ($q) use ($user) {
+                $q->where('users.id', $user->id)
+                  ->where('completed', true);
+            })
+            ->count();
+
+        // 4️⃣ Tính % tiến độ khóa học
+        $courseProgress = $totalLessons > 0
+            ? round(($completedLessons / $totalLessons) * 100)
+            : 0;
+
+        return view('student.courses.show', compact(
+            'course',
+            'lessons',
+            'courseProgress',
+            'completedLessons',
+            'totalLessons'
+        ));
     }
 
+    /**
+     * Danh sách khóa học để khám phá
+     */
     public function explore()
     {
         $courses = Course::all();
@@ -43,6 +69,9 @@ class StudentCourseController extends Controller
         return view('student.courses.explore', compact('courses'));
     }
 
+    /**
+     * Đăng ký khóa học
+     */
     public function enroll(Course $course)
     {
         Auth::user()
@@ -53,17 +82,4 @@ class StudentCourseController extends Controller
             ->route('student.courses.index')
             ->with('success', 'Đăng ký khóa học thành công');
     }
-    public function complete(Course $course)
-{
-    auth()->user()
-        ->enrolledCourses()
-        ->updateExistingPivot($course->id, [
-            'progress' => 100
-        ]);
-
-    return redirect()
-        ->route('student.courses.show', $course)
-        ->with('success', '🎉 Bạn đã hoàn thành khoá học!');
-}
-
 }

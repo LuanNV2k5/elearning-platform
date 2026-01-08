@@ -19,6 +19,8 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
+    /* ================= BASIC ================= */
+
     protected $fillable = [
         'name',
         'email',
@@ -46,24 +48,24 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class);
     }
 
-    /* ================= ROLE CHECK (ĐÚNG) ================= */
+    /* ================= ROLE CHECK ================= */
 
     public function isAdmin(): bool
     {
-        return $this->role?->name === 'admin';
+        return strtolower($this->role?->name ?? '') === 'admin';
     }
 
     public function isTeacher(): bool
     {
-        return $this->role?->name === 'teacher';
+        return strtolower($this->role?->name ?? '') === 'teacher';
     }
 
     public function isStudent(): bool
     {
-        return $this->role?->name === 'student';
+        return strtolower($this->role?->name ?? '') === 'student';
     }
 
-    /* ================= RELATION ================= */
+    /* ================= COURSE RELATION ================= */
 
     // Giáo viên tạo khóa học
     public function teachingCourses(): HasMany
@@ -71,29 +73,72 @@ class User extends Authenticatable
         return $this->hasMany(Course::class, 'teacher_id');
     }
 
-    // Học viên đăng ký khóa học (DÙNG BẢNG course_user)
+    // Học viên đăng ký khóa học (bảng course_user)
     public function enrolledCourses(): BelongsToMany
     {
-        return $this->belongsToMany(Course::class, 'course_user');
+        return $this->belongsToMany(Course::class, 'course_user')
+            ->withTimestamps();
     }
 
-    // Nếu bạn có bảng enrollments riêng (TUỲ CHỌN)
+    // Nếu có bảng enrollments riêng (tuỳ chọn)
     public function enrollments(): HasMany
     {
         return $this->hasMany(Enrollment::class);
     }
 
-    // Các bài học do user tạo (nếu có)
-    public function lessons(): HasMany
-    {
-        return $this->hasMany(Lesson::class);
-    }
+    /* ================= LESSON / PROGRESS ================= */
 
-    public function completedLessons()
+    /**
+     * Các bài học user đã tham gia (bảng lesson_user)
+     */
+    public function lessons(): BelongsToMany
     {
-        return $this->belongsToMany(Lesson::class)
-            ->withPivot('completed', 'completed_at')
+        return $this->belongsToMany(Lesson::class, 'lesson_user')
+            ->withPivot([
+                'progress',     // % tiến độ
+                'completed',    // true / false
+            ])
             ->withTimestamps();
     }
+
+    /**
+     * Chỉ các bài học đã hoàn thành
+     */
+    public function completedLessons(): BelongsToMany
+    {
+        return $this->belongsToMany(Lesson::class, 'lesson_user')
+            ->wherePivot('completed', true)
+            ->withPivot([
+                'progress',
+                'completed',
+            ])
+            ->withTimestamps();
+    }
+
+    /* ================= HELPER ================= */
+
+    /**
+     * Lấy tiến độ (%) của user cho 1 lesson cụ thể
+     */
+    public function lessonProgress(Lesson $lesson): int
+    {
+        $pivot = $this->lessons
+            ->where('id', $lesson->id)
+            ->first()?->pivot;
+
+        return $pivot?->progress ?? 0;
+    }
+
+    /**
+     * Kiểm tra user đã hoàn thành lesson chưa
+     */
+    public function hasCompletedLesson(Lesson $lesson): bool
+    {
+        return $this->lessonProgress($lesson) === 100;
+    }
+    public function quizAttempts()
+{
+    return $this->hasMany(\App\Models\QuizAttempt::class);
+}
 
 }
