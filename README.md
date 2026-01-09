@@ -60,7 +60,7 @@ phù hợp cho cả **đồ án học tập** lẫn **phát triển thành sản
 
 ## 👤 Tác giả
 
-**Nguyễn Văn Luân**
+**Nguyễn Văn Luân** <br>
 **Nguyễn Xuân Phát**
 
 📍 Việt Nam
