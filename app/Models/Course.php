@@ -1,10 +1,8 @@
 <?php
 
 namespace App\Models;
-use App\Models\Quiz;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\User;
 
 class Course extends Model
 {
@@ -13,9 +11,9 @@ class Course extends Model
         'title',
         'description',
         'price',
-        'is_published',
+        'status',     // ✅ dùng status
+        'thumbnail',  // nếu DB có thì giữ, không có thì xóa dòng này
     ];
-    
 
     public function teacher()
     {
@@ -26,13 +24,35 @@ class Course extends Model
     {
         return $this->hasMany(Lesson::class)->orderBy('order');
     }
-    public function students()
+
+    public function firstLesson()
     {
-        return $this->belongsToMany(User::class, 'course_user');
-    }
-    public function quiz()
-    {
-        return $this->hasOne(\App\Models\Quiz::class);
+        return $this->hasOne(Lesson::class)->orderBy('order');
     }
 
+    public function students()
+    {
+        return $this->belongsToMany(User::class, 'course_user')
+            ->withPivot(['progress'])
+            ->withTimestamps();
+    }
+
+    public function quiz()
+    {
+        return $this->hasOne(Quiz::class);
+    }
+
+    // ✅ lấy thumbnail từ youtube của bài học đầu tiên
+    public function getThumbnailUrlAttribute(): ?string
+    {
+        $lesson = $this->relationLoaded('firstLesson')
+            ? $this->firstLesson
+            : $this->firstLesson()->first();
+
+        if ($lesson && !empty($lesson->youtube_id)) {
+            return "https://img.youtube.com/vi/{$lesson->youtube_id}/hqdefault.jpg";
+        }
+
+        return null;
+    }
 }

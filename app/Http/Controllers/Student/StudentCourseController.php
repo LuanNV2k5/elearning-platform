@@ -14,10 +14,15 @@ class StudentCourseController extends Controller
      */
     public function index()
     {
-        $courses = Auth::user()->enrolledCourses;
+        $courses = auth()->user()
+            ->enrolledCourses()
+            ->with('firstLesson:id,course_id,youtube_id,order')
+            ->get();
 
         return view('student.courses.index', compact('courses'));
     }
+
+
 
     /**
      * Chi tiết khóa học + TIẾN ĐỘ (FIX CHUẨN)
@@ -65,12 +70,24 @@ class StudentCourseController extends Controller
     /**
      * Danh sách khóa học để khám phá
      */
+
     public function explore()
     {
-        $courses = Course::all();
+        $courses = \App\Models\Course::query()
+            ->where('status', 'published') // hoặc sửa theo cột bạn đang dùng
+            ->with('firstLesson:id,course_id,youtube_id,order')
+            ->get();
 
-        return view('student.courses.explore', compact('courses'));
+        $enrolledIds = auth()->user()
+            ->enrolledCourses()
+            ->pluck('courses.id')
+            ->toArray();
+
+        return view('student.courses.explore', compact('courses', 'enrolledIds'));
     }
+
+
+
 
     /**
      * Đăng ký khóa học

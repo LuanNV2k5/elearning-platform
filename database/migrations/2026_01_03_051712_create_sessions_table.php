@@ -11,7 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('sessions', function (Blueprint $table) {
+        if (\Illuminate\Support\Facades\Schema::hasTable('sessions')) {
+            return;
+        }
+
+        \Illuminate\Support\Facades\Schema::create('sessions', function (\Illuminate\Database\Schema\Blueprint $table) {
             $table->string('id')->primary();
             $table->foreignId('user_id')->nullable()->index();
             $table->string('ip_address', 45)->nullable();
@@ -20,6 +24,7 @@ return new class extends Migration
             $table->integer('last_activity')->index();
         });
     }
+
 
     /**
      * Reverse the migrations.
