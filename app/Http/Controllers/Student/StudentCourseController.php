@@ -53,7 +53,6 @@ class StudentCourseController extends Controller
             ->with('firstLesson:id,course_id,youtube_id,order')
             ->get();
 
-        // ===== Up next (ưu tiên theo khóa vừa xem) =====
         $lastCourseId = DB::table('user_events')
             ->where('user_id', $userId)
             ->whereIn('event_type', ['view_lesson', 'view_course'])
@@ -173,47 +172,83 @@ class StudentCourseController extends Controller
 
         $this->logEvent('view_course', $course->id);
 
+        $userId = Auth::id();
+
         // lessons theo order
         $lessons = $course->lessons()->orderBy('order')->get();
-
-        // progress tổng: lấy từ course_user.progress (0..100)
-        $courseProgress = (int) (DB::table('course_user')
-            ->where('user_id', Auth::id())
-            ->where('course_id', $course->id)
-            ->value('progress') ?? 0);
-
-        if ($courseProgress < 0) $courseProgress = 0;
-        if ($courseProgress > 100) $courseProgress = 100;
+        $lessonIds = $lessons->pluck('id')->toArray();
 
         // total lessons
         $totalLessons = $lessons->count();
 
         // completed lessons: dựa lesson_user.completed = 1
-        $completedLessons = (int) (DB::table('lesson_user')
-            ->where('user_id', Auth::id())
-            ->whereIn('lesson_id', $lessons->pluck('id')->toArray())
-            ->where('completed', 1)
-            ->count());
+        $completedLessons = 0;
+        if ($totalLessons > 0) {
+            $completedLessons = (int) DB::table('lesson_user')
+                ->where('user_id', $userId)
+                ->whereIn('lesson_id', $lessonIds)
+                ->where('completed', 1)
+                ->count();
+        }
 
         // lesson đã mở (chỉ cần có record trong lesson_user là coi như opened)
-        $openedLessonIds = DB::table('lesson_user')
-            ->where('user_id', Auth::id())
-            ->whereIn('lesson_id', $lessons->pluck('id')->toArray())
-            ->pluck('lesson_id');
+        $openedLessonIds = collect();
+        $completedLessonIds = collect();
 
-        // lesson đã hoàn thành
-        $completedLessonIds = DB::table('lesson_user')
-            ->where('user_id', Auth::id())
-            ->whereIn('lesson_id', $lessons->pluck('id')->toArray())
-            ->where('completed', 1)
-            ->pluck('lesson_id');
+        if ($totalLessons > 0) {
+            $openedLessonIds = DB::table('lesson_user')
+                ->where('user_id', $userId)
+                ->whereIn('lesson_id', $lessonIds)
+                ->pluck('lesson_id');
+
+            $completedLessonIds = DB::table('lesson_user')
+                ->where('user_id', $userId)
+                ->whereIn('lesson_id', $lessonIds)
+                ->where('completed', 1)
+                ->pluck('lesson_id');
+        }
+
+        /**
+         * ✅ FIX CHÍNH:
+         * - Đừng phụ thuộc course_user.progress (vì có thể chưa được update)
+         * - Tính progress theo completed / total
+         */
+        $computedProgress = 0;
+        if ($totalLessons > 0) {
+            $computedProgress = (int) floor(($completedLessons / $totalLessons) * 100);
+        }
+
+        // clamp 0..100
+        if ($computedProgress < 0) $computedProgress = 0;
+        if ($computedProgress > 100) $computedProgress = 100;
+
+        // Lấy progress đã lưu (nếu có) để so sánh, nhưng ưu tiên computed
+        $storedProgress = (int) (DB::table('course_user')
+            ->where('user_id', $userId)
+            ->where('course_id', $course->id)
+            ->value('progress') ?? 0);
+
+        if ($storedProgress < 0) $storedProgress = 0;
+        if ($storedProgress > 100) $storedProgress = 100;
+
+        // Ưu tiên computed (đảm bảo thanh chạy đúng theo completed)
+        $courseProgress = $computedProgress;
+
+        // (Tuỳ chọn nhưng nên làm) Đồng bộ ngược vào course_user nếu lệch
+        // updateOrInsert để tránh trường hợp chưa có record pivot
+        if ($courseProgress !== $storedProgress) {
+            DB::table('course_user')->updateOrInsert(
+                ['user_id' => $userId, 'course_id' => $course->id],
+                ['progress' => $courseProgress, 'updated_at' => now(), 'created_at' => now()]
+            );
+        }
 
         // quiz attempt gần nhất (đúng theo quiz_id)
         $quizId = DB::table('quizzes')->where('course_id', $course->id)->value('id');
         $latestAttempt = null;
         if ($quizId) {
             $latestAttempt = DB::table('quiz_attempts')
-                ->where('user_id', Auth::id())
+                ->where('user_id', $userId)
                 ->where('quiz_id', $quizId)
                 ->orderByDesc('created_at')
                 ->first();

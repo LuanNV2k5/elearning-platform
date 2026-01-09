@@ -30,12 +30,14 @@
         <h5 class="card-title mb-3">📊 Tiến độ khóa học</h5>
 
         <div class="progress mb-2" style="height: 22px;">
-            <div class="progress-bar {{ $progressClass }}"
-                 role="progressbar"
-                 style="width: {{ $courseProgress }}%;"
-                 aria-valuenow="{{ $courseProgress }}"
-                 aria-valuemin="0"
-                 aria-valuemax="100">
+            <div
+                class="progress-bar {{ $progressClass }} progress-bar-striped @if($courseProgress > 0 && $courseProgress < 100) progress-bar-animated @endif"
+                role="progressbar"
+                style="width: {{ $courseProgress }}%;"
+                aria-valuenow="{{ $courseProgress }}"
+                aria-valuemin="0"
+                aria-valuemax="100"
+            >
                 {{ $courseProgress }}%
             </div>
         </div>
