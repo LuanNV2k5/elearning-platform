@@ -14,37 +14,39 @@ class QuizController extends Controller
      * 👉 CHỈ CHO PHÉP khi hoàn thành 100% khóa học
      */
     public function show(Course $course)
-    {
-        $user = auth()->user();
+{
+    $user = auth()->user();
 
-        // 1️⃣ TÍNH TIẾN ĐỘ KHÓA HỌC
-        $totalLessons = $course->lessons()->count();
+    // 1️⃣ Lấy quiz
+    $quiz = $course->quiz()->with('questions.options')->first();
 
-        $completedLessons = $course->lessons()
-            ->whereHas('students', function ($q) use ($user) {
-                $q->where('users.id', $user->id)
-                  ->where('completed', true);
-            })
-            ->count();
-
-        $courseProgress = $totalLessons > 0
-            ? round(($completedLessons / $totalLessons) * 100)
-            : 0;
-
-        // 2️⃣ CHẶN NẾU CHƯA ĐỦ 100%
-        if ($courseProgress < 100) {
-            abort(403, 'Bạn phải hoàn thành 100% khóa học trước khi làm bài kiểm tra');
-        }
-
-        // 3️⃣ LẤY QUIZ
-        $quiz = $course->quiz()->with('questions.options')->first();
-
-        if (!$quiz) {
-            abort(404, 'Khóa học chưa có bài kiểm tra');
-        }
-
-        return view('student.quiz.show', compact('course', 'quiz'));
+    if (!$quiz) {
+        abort(404, 'Khóa học chưa có bài kiểm tra');
     }
+
+    // 2️⃣ TÍNH PROGRESS KHÓA HỌC (CHUẨN)
+    $lessonIds = $course->lessons()->pluck('id');
+
+    $totalLessons = $lessonIds->count();
+
+    $completedLessons = \DB::table('lesson_user')
+        ->where('user_id', $user->id)
+        ->whereIn('lesson_id', $lessonIds)
+        ->where('completed', 1)
+        ->count();
+
+    $courseProgress = $totalLessons > 0
+        ? round(($completedLessons / $totalLessons) * 100)
+        : 0;
+
+    // 3️⃣ CHẶN NẾU CHƯA HỌC XONG
+    if ($courseProgress < 100) {
+        abort(403, 'Bạn chưa hoàn thành 100% khóa học');
+    }
+
+    return view('student.quiz.show', compact('course', 'quiz'));
+}
+
 
     /**
      * Nộp bài kiểm tra
