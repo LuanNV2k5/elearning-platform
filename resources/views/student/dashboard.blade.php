@@ -1,114 +1,74 @@
 @extends('layouts.student')
 
 @section('content')
-@php
-    use App\Models\Course;
+<h3 class="mb-4">👋 Chào mừng bạn quay lại</h3>
 
-    $student = auth()->user();
+{{-- ===== CONTINUE WATCHING ===== --}}
+@if($continue)
+<div class="card mb-4 border-primary">
+    <div class="row g-0">
+        <div class="col-md-4">
+            @if($continue->youtube_id)
+                <img
+                    src="https://img.youtube.com/vi/{{ $continue->youtube_id }}/hqdefault.jpg"
+                    class="img-fluid rounded-start"
+                    style="height:100%;object-fit:cover"
+                >
+            @endif
+        </div>
+        <div class="col-md-8">
+            <div class="card-body">
+                <h5 class="card-title">▶ Tiếp tục học</h5>
+                <p class="mb-1"><strong>{{ $continue->course_title }}</strong></p>
+                <p class="text-muted">{{ $continue->lesson_title }}</p>
 
-    // Lấy các khóa học sinh viên đã ghi danh
-    $courses = Course::join('course_user', 'courses.id', '=', 'course_user.course_id')
-        ->where('course_user.user_id', $student->id)
-        ->select('courses.*')
-        ->with('quiz') // load quiz
-        ->get();
-@endphp
-
-<h3 class="mb-3">🎓 Student Dashboard</h3>
-<p class="mb-4">Chào mừng bạn đến hệ thống học tập.</p>
-
-{{-- ====== THÔNG TIN SINH VIÊN ====== --}}
-<div class="card mb-4">
-    <div class="card-header">
-        👤 Thông tin sinh viên
-    </div>
-    <div class="card-body">
-        <p><strong>Họ tên:</strong> {{ $student->name }}</p>
-        <p><strong>Email:</strong> {{ $student->email }}</p>
-        <p><strong>Vai trò:</strong> Sinh viên</p>
-    </div>
-</div>
-
-{{-- ====== THỐNG KÊ ====== --}}
-<div class="card mb-4">
-    <div class="card-header">
-        📊 Thống kê
-    </div>
-    <div class="card-body">
-        <p>
-            <strong>Số khóa học đang tham gia:</strong>
-            {{ $courses->count() }}
-        </p>
+                <a href="{{ route('student.lessons.show', [$continue->course_id, $continue->lesson_id]) }}"
+                   class="btn btn-primary">
+                    Tiếp tục
+                </a>
+            </div>
+        </div>
     </div>
 </div>
+@endif
 
-{{-- ====== DANH SÁCH KHÓA HỌC ====== --}}
-<div class="card">
-    <div class="card-header">
-        📚 Khóa học của bạn
+{{-- ===== KHÓA HỌC CỦA TÔI ===== --}}
+<h4 class="mb-3">📚 Khóa học của tôi</h4>
+
+<div class="row">
+@forelse($courses as $course)
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm">
+
+            {{-- Thumbnail --}}
+            @if($course->firstLesson && $course->firstLesson->youtube_id)
+                <img
+                    src="https://img.youtube.com/vi/{{ $course->firstLesson->youtube_id }}/hqdefault.jpg"
+                    class="card-img-top"
+                    style="height:200px;object-fit:cover"
+                >
+            @endif
+
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title">{{ $course->title }}</h5>
+
+                {{-- Progress --}}
+                <div class="progress mb-2" style="height:18px">
+                    <div class="progress-bar bg-success"
+                         style="width: {{ (int)$course->progress }}%">
+                        {{ (int)$course->progress }}%
+                    </div>
+                </div>
+
+                <a href="{{ route('student.courses.show', $course) }}"
+                   class="btn btn-outline-primary mt-auto">
+                    Vào học
+                </a>
+            </div>
+        </div>
     </div>
-    <div class="card-body p-0">
-        <table class="table table-bordered mb-0">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Tên khóa học</th>
-                    <th>Giá</th>
-                    <th>Ngày tham gia</th>
-                    <th>Trạng thái</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($courses as $index => $course)
-                    @php
-                        // Lần làm quiz gần nhất của user cho course này
-                        $attempt = $student->quizAttempts()
-                            ->whereHas('quiz', fn($q) => $q->where('course_id', $course->id))
-                            ->latest()
-                            ->first();
-                    @endphp
-
-                    <tr>
-                        <td>{{ $index + 1 }}</td>
-                        <td>{{ $course->title }}</td>
-                        <td>{{ number_format($course->price) }} đ</td>
-                        <td>{{ $course->created_at->format('d/m/Y') }}</td>
-                        <td>
-                            {{-- CHƯA CÓ QUIZ --}}
-                            @if(!$course->quiz)
-                                <span class="badge bg-secondary">
-                                    Chưa có bài kiểm tra
-                                </span>
-
-                            {{-- ĐÃ PASS QUIZ --}}
-                            @elseif($attempt && $attempt->status === 'passed')
-                                <span class="badge bg-success">
-                                    🎉 Hoàn thành khóa học
-                                </span>
-
-                            {{-- ĐÃ LÀM QUIZ NHƯNG FAIL --}}
-                            @elseif($attempt && $attempt->status === 'failed')
-                                <span class="badge bg-danger">
-                                    ❌ Chưa đạt bài kiểm tra
-                                </span>
-
-                            {{-- CHƯA ĐỦ ĐIỀU KIỆN --}}
-                            @else
-                                <span class="badge bg-warning text-dark">
-                                    ⏳ Chưa đủ điều kiện làm bài kiểm tra
-                                </span>
-                            @endif
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="5" class="text-center">
-                            Bạn chưa tham gia khóa học nào
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
+@empty
+    <p class="text-muted">Bạn chưa đăng ký khóa học nào.</p>
+@endforelse
 </div>
 @endsection

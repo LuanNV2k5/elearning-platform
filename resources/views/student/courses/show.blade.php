@@ -5,7 +5,10 @@
 
 {{-- ===== PROGRESS CHUNG KHOÁ HỌC ===== --}}
 @php
-    // Xác định màu progress
+    $courseProgress = (int) ($courseProgress ?? 0);
+    if ($courseProgress < 0) $courseProgress = 0;
+    if ($courseProgress > 100) $courseProgress = 100;
+
     if ($courseProgress === 100) {
         $progressClass = 'bg-success';
     } elseif ($courseProgress >= 50) {
@@ -14,12 +17,12 @@
         $progressClass = 'bg-warning';
     }
 
-    // Lần làm quiz gần nhất (nếu có)
-    $latestAttempt = auth()->user()
-        ->quizAttempts()
-        ->whereHas('quiz', fn($q) => $q->where('course_id', $course->id))
-        ->latest()
-        ->first();
+    // chống undefined
+    $completedLessons = (int) ($completedLessons ?? 0);
+    $totalLessons = (int) ($totalLessons ?? 0);
+
+    $openedLessonIds = $openedLessonIds ?? collect();
+    $completedLessonIds = $completedLessonIds ?? collect();
 @endphp
 
 <div class="card mb-4">
@@ -44,15 +47,15 @@
         {{-- ===== TRẠNG THÁI QUIZ / KHÓA HỌC ===== --}}
         <div class="mt-2">
             {{-- ĐÃ PASS QUIZ --}}
-            @if($latestAttempt && $latestAttempt->status === 'passed')
+            @if($latestAttempt && ($latestAttempt->status ?? null) === 'passed')
                 <span class="badge bg-success fs-6">
                     🎉 Bạn đã hoàn thành khóa học
                 </span>
 
             {{-- ĐÃ LÀM QUIZ NHƯNG FAIL --}}
-            @elseif($latestAttempt && $latestAttempt->status === 'failed')
+            @elseif($latestAttempt && ($latestAttempt->status ?? null) === 'failed')
                 <span class="badge bg-danger fs-6 d-block mb-2">
-                    ❌ Chưa đạt 50% bài kiểm tra
+                    ❌ Chưa đạt yêu cầu bài kiểm tra
                 </span>
 
                 <a href="{{ route('student.courses.quiz.show', $course) }}"
@@ -62,12 +65,12 @@
 
             {{-- CHƯA LÀM QUIZ --}}
             @else
-                @if($courseProgress >= 100 && $course->quiz)
+                @if($courseProgress >= 100 && !empty($course->quiz))
                     <a href="{{ route('student.courses.quiz.show', $course) }}"
                        class="btn btn-success">
                         🧪 Làm bài kiểm tra
                     </a>
-                @elseif($courseProgress < 100)
+                @elseif($courseProgress < 100 && !empty($course->quiz))
                     <span class="text-muted">
                         Hoàn thành 100% khóa học để mở bài kiểm tra
                     </span>
@@ -79,23 +82,11 @@
 
 {{-- ===== DANH SÁCH BÀI HỌC ===== --}}
 <ul class="list-group">
-@php
-    // Các lesson user đã từng mở
-    $openedLessonIds = auth()->user()
-        ->lessons
-        ->pluck('id');
-
-    // Các lesson đã hoàn thành
-    $completedLessonIds = auth()->user()
-        ->completedLessons
-        ->pluck('id');
-@endphp
-
 @foreach ($lessons as $index => $lesson)
     @php
         $prevLesson = $lessons[$index - 1] ?? null;
 
-        // 🔑 Rule: chỉ cần MỞ bài trước là mở bài sau
+        // Rule: chỉ cần MỞ bài trước là mở bài sau
         $locked = $prevLesson && !$openedLessonIds->contains($prevLesson->id);
 
         $completed = $completedLessonIds->contains($lesson->id);

@@ -278,4 +278,39 @@ Route::middleware('guest')->group(function () {
         ->name('google.callback');
 });
 
+Route::middleware(['auth', 'role:student'])
+    ->prefix('student')
+    ->name('student.')
+    ->group(function () {
+
+        // Khóa học của tôi
+        Route::get('/courses', [StudentCourseController::class, 'index'])
+            ->name('courses.index');
+
+        // Khám phá khóa học
+        Route::get('/explore', [StudentCourseController::class, 'explore'])
+            ->name('explore');
+
+        // Xem chi tiết khóa học
+        Route::get('/courses/{course}', [StudentCourseController::class, 'show'])
+            ->name('courses.show');
+
+        // Đăng ký khóa học
+        Route::post('/courses/{course}/enroll', [StudentCourseController::class, 'enroll'])
+            ->name('courses.enroll');
+
+        // Xem bài học/video
+        Route::get('/courses/{course}/lessons/{lesson}', [StudentLessonController::class, 'show'])
+            ->name('lessons.show');
+    });
+
+Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')->group(function () {
+    // ...
+    Route::get('/courses/{course}/lessons/{lesson}', [StudentLessonController::class, 'show'])
+        ->name('lessons.show');
+
+    Route::post('/courses/{course}/lessons/{lesson}/complete', [StudentLessonController::class, 'complete'])
+        ->name('lessons.complete');
+});
+
 require __DIR__ . '/auth.php';
