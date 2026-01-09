@@ -21,22 +21,25 @@ class CourseController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $data = $request->validate([
             'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
             'price' => 'nullable|integer|min:0',
         ]);
 
-        Course::create([
-            'teacher_id' => auth()->id(),
-            'title' => $request->title,
-            'description' => $request->description,
-            'price' => $request->price ?? 0,
-        ]);
+        $data['teacher_id'] = auth()->id();
+        $data['price'] = $data['price'] ?? 0;
+
+        // ✅ DÒNG QUAN TRỌNG NHẤT
+        $data['status'] = 'published';
+
+        Course::create($data);
 
         return redirect()
             ->route('teacher.courses.index')
-            ->with('success', 'Tạo khóa học thành công');
+            ->with('success', 'Tạo khóa học thành công (đang ở trạng thái nháp)');
     }
+
     public function destroy(Course $course): RedirectResponse
     {
         // (tuỳ chọn) kiểm tra quyền sở hữu
@@ -60,7 +63,7 @@ class CourseController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'thumbnail' => 'nullable|image',
-            'status' => 'required|in:draft,published',
+            'status' => 'required|in:published,draft',
         ]);
 
         if ($request->hasFile('thumbnail')) {

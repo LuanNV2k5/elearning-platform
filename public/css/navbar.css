@@ -1,0 +1,45 @@
+/* navbar.css */
+
+/* 1. Khung chính của Navbar */
+.main-navbar {
+    background-color: var(--sidebar-bg); /* Dùng màu trắng giống Sidebar */
+    border-bottom: 1px solid var(--border-color); /* Viền mờ ngăn cách */
+    padding-top: 0.8rem;
+    padding-bottom: 0.8rem;
+}
+
+/* 2. Logo / Tên thương hiệu */
+.main-navbar .navbar-brand {
+    color: var(--primary-color) !important; /* Màu chủ đạo */
+    font-size: 1.5rem;
+}
+
+/* 3. Link Menu (Mặc định) */
+.main-navbar .nav-link {
+    color: var(--secondary-color); /* Màu xám mặc định */
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+/* 4. Link Menu (Hover & Active) */
+.main-navbar .nav-link:hover,
+.main-navbar .nav-link.active {
+    color: var(--primary-color); /* Đổi sang màu chủ đạo khi hover */
+}
+
+/* 5. Dropdown Menu (Menu con bên phải) */
+.main-navbar .dropdown-menu {
+    border-color: var(--border-color);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.main-navbar .dropdown-item {
+    color: var(--secondary-color);
+}
+
+.main-navbar .dropdown-item:hover {
+    background-color: var(--hover-bg);
+    color: var(--primary-color);
+}
+
+/* Nút đăng xuất màu đỏ thì giữ nguyên class text-danger hoặc custom thêm nếu muốn */

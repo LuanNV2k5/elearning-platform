@@ -1,0 +1,50 @@
+/* admin-style.css */
+
+:root {
+    /* --- BẢNG MÀU CHUNG (Sửa ở đây là đổi màu cả web) --- */
+    --primary-color: #4e73df;      /* Màu chủ đạo (Ví dụ: Xanh dương) */
+    --secondary-color: #858796;    /* Màu phụ (Xám chữ) */
+    
+    /* Màu nền */
+    --body-bg: #f8f9fc;            /* Màu nền trang (xám rất nhạt) */
+    --sidebar-bg: #ffffff;         /* Màu nền Sidebar (Trắng) */
+    
+    /* Trạng thái */
+    --hover-bg: #eaecf4;           /* Màu nền khi di chuột vào */
+    --active-text: #2e59d9;        /* Màu chữ khi đang chọn menu đó */
+    --border-color: #e3e6f0;       /* Màu đường viền ngăn cách */
+}
+
+/* Áp dụng cho body */
+body {
+    background-color: var(--body-bg) !important; /* Dùng biến màu nền */
+    font-family: 'Nunito', sans-serif; /* Font chữ chung */
+}
+
+/* Các class tiện ích chung nếu cần */
+.text-primary-theme {
+    color: var(--primary-color);
+}
+
+/* ... Các code cũ giữ nguyên ... */
+
+/* Thêm vào cuối file admin-style.css */
+
+/* Style cho form đăng nhập/đăng ký */
+.auth-card {
+    background-color: var(--sidebar-bg); /* Dùng chung màu nền trắng của Sidebar */
+    border-radius: 10px; /* Bo góc mượt hơn */
+    border: 1px solid var(--border-color) !important; /* Dùng màu viền chung */
+}
+
+/* Tùy chỉnh nút bấm chính (Login Button) */
+/* Nếu trong form bạn dùng class .btn-primary, nó sẽ tự ăn theo code dưới đây */
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--active-text); /* Màu đậm hơn khi hover */
+    border-color: var(--active-text);
+}

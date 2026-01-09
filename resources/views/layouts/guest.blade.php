@@ -6,26 +6,34 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>{{ config('app.name', 'Laravel') }}</title>
+        
+        {{-- Favicon --}}
+        <link rel="icon" href="{{ asset('images/favicon.png') }}">
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
+        {{-- 1. THÊM LẠI FILE STYLE CHUNG để đồng bộ màu sắc với Admin --}}
+        <link rel="stylesheet" href="{{ asset('css/admin-style.css') }}">
         <link href="{{ asset('css/google-btn.css') }}" rel="stylesheet">
     </head>
-    <body class="bg-light">
+    
+    {{-- Xóa bg-light vì admin-style.css đã quy định màu nền rồi --}}
+    <body>
         <div class="container">
             <div class="row justify-content-center align-items-center min-vh-100">
                 <div class="col-12 col-md-6 col-lg-5">
                     
                     <div class="text-center mb-4">
                         <a href="/">
+                            {{-- Logo sẽ tự nhận từ file application-logo.blade.php --}}
                             <x-application-logo class="w-20 h-20 fill-current text-secondary" style="height: 80px; width: auto;" />
                         </a>
                     </div>
 
-                    <div class="card shadow-sm border-0">
+                    {{-- Thêm class auth-card để bo góc và có màu nền trắng chuẩn --}}
+                    <div class="card shadow-sm border-0 auth-card">
                         <div class="card-body p-4">
                             {{ $slot }}
                         </div>

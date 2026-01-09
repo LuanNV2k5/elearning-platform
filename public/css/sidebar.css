@@ -1,0 +1,43 @@
+/* sidebar.css */
+
+/* 1. Khung bao quanh Sidebar */
+.sidebar-wrapper {
+    background-color: var(--sidebar-bg); /* Lấy màu trắng từ file gốc */
+    border-right: 1px solid var(--border-color); /* Đường kẻ ngăn cách mờ */
+    height: 100%;
+    min-height: 100vh;
+    padding-top: 1rem;
+}
+
+/* 2. Các đường link (Menu item) */
+.sidebar-wrapper .nav-link {
+    color: var(--secondary-color); /* Màu chữ xám mặc định */
+    font-weight: 600;
+    padding: 12px 20px;
+    margin-bottom: 5px;
+    border-radius: 5px; /* Bo tròn nhẹ */
+    transition: all 0.3s ease; /* Hiệu ứng mượt mà */
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+/* Icon bên trong menu (nếu có) */
+.sidebar-wrapper .nav-link i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+/* 3. Hiệu ứng khi di chuột (Hover) */
+.sidebar-wrapper .nav-link:hover {
+    background-color: var(--hover-bg); /* Lấy màu nền hover từ gốc */
+    color: var(--primary-color);       /* Đổi chữ sang màu chủ đạo */
+}
+
+/* 4. Trạng thái đang chọn (Active) - Class .active thường do Laravel thêm vào */
+.sidebar-wrapper .nav-link.active {
+    background-color: var(--primary-color); /* Nền thành màu chủ đạo */
+    color: #ffffff;                         /* Chữ thành màu trắng cho nổi */
+    box-shadow: 0 4px 6px rgba(78, 115, 223, 0.25); /* Đổ bóng nhẹ */
+}
