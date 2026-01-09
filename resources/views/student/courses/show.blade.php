@@ -3,26 +3,40 @@
 @section('content')
 <h3 class="mb-3">📘 {{ $course->title }}</h3>
 
-{{-- ===== PROGRESS CHUNG KHOÁ HỌC ===== --}}
 @php
-    $courseProgress = (int) ($courseProgress ?? 0);
+    // ==== chống undefined ====
+    $completedLessons = (int) ($completedLessons ?? 0);
+    $totalLessons = (int) ($totalLessons ?? 0);
+    $openedLessonIds = $openedLessonIds ?? collect();
+    $completedLessonIds = $completedLessonIds ?? collect();
+
+    // ==== TÍNH PROGRESS CHUẨN TỪ DB (completed/total) ====
+    // Ưu tiên tính từ completedLessons/totalLessons để khỏi lệ thuộc course_user.progress
+    if ($totalLessons > 0) {
+        $computedProgress = (int) round(($completedLessons / $totalLessons) * 100);
+    } else {
+        $computedProgress = 0;
+    }
+
+    // Nếu controller có truyền $courseProgress thì vẫn dùng,
+    // nhưng nếu nó sai (ví dụ 0) mà computedProgress > 0 => lấy computedProgress
+    $courseProgress = (int) ($courseProgress ?? $computedProgress);
+    if ($computedProgress > $courseProgress) $courseProgress = $computedProgress;
+
     if ($courseProgress < 0) $courseProgress = 0;
     if ($courseProgress > 100) $courseProgress = 100;
 
+    // ==== màu progress ====
     if ($courseProgress === 100) {
         $progressClass = 'bg-success';
     } elseif ($courseProgress >= 50) {
         $progressClass = 'bg-info';
-    } else {
+    } elseif ($courseProgress > 0) {
         $progressClass = 'bg-warning';
+    } else {
+        // 0% thì để xám cho khỏi "mất màu"
+        $progressClass = 'bg-secondary';
     }
-
-    // chống undefined
-    $completedLessons = (int) ($completedLessons ?? 0);
-    $totalLessons = (int) ($totalLessons ?? 0);
-
-    $openedLessonIds = $openedLessonIds ?? collect();
-    $completedLessonIds = $completedLessonIds ?? collect();
 @endphp
 
 <div class="card mb-4">
@@ -31,7 +45,8 @@
 
         <div class="progress mb-2" style="height: 22px;">
             <div
-                class="progress-bar {{ $progressClass }} progress-bar-striped @if($courseProgress > 0 && $courseProgress < 100) progress-bar-animated @endif"
+                class="progress-bar {{ $progressClass }} progress-bar-striped
+                    @if($courseProgress > 0 && $courseProgress < 100) progress-bar-animated @endif"
                 role="progressbar"
                 style="width: {{ $courseProgress }}%;"
                 aria-valuenow="{{ $courseProgress }}"
@@ -48,13 +63,11 @@
 
         {{-- ===== TRẠNG THÁI QUIZ / KHÓA HỌC ===== --}}
         <div class="mt-2">
-            {{-- ĐÃ PASS QUIZ --}}
             @if($latestAttempt && ($latestAttempt->status ?? null) === 'passed')
                 <span class="badge bg-success fs-6">
                     🎉 Bạn đã hoàn thành khóa học
                 </span>
 
-            {{-- ĐÃ LÀM QUIZ NHƯNG FAIL --}}
             @elseif($latestAttempt && ($latestAttempt->status ?? null) === 'failed')
                 <span class="badge bg-danger fs-6 d-block mb-2">
                     ❌ Chưa đạt yêu cầu bài kiểm tra
@@ -65,7 +78,6 @@
                     🔁 Làm lại bài kiểm tra
                 </a>
 
-            {{-- CHƯA LÀM QUIZ --}}
             @else
                 @if($courseProgress >= 100 && !empty($course->quiz))
                     <a href="{{ route('student.courses.quiz.show', $course) }}"
