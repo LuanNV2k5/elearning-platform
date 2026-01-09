@@ -62,7 +62,7 @@
 
             {{-- CHƯA LÀM QUIZ --}}
             @else
-                @if($courseProgress === 100 && $course->quiz)
+                @if($courseProgress >= 100 && $course->quiz)
                     <a href="{{ route('student.courses.quiz.show', $course) }}"
                        class="btn btn-success">
                         🧪 Làm bài kiểm tra

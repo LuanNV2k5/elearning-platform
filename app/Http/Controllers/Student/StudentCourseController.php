@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class StudentCourseController extends Controller
 {
@@ -19,7 +20,7 @@ class StudentCourseController extends Controller
     }
 
     /**
-     * Chi tiết khóa học + TIẾN ĐỘ (PHẦN E)
+     * Chi tiết khóa học + TIẾN ĐỘ (FIX CHUẨN)
      */
     public function show(Course $course)
     {
@@ -30,22 +31,24 @@ class StudentCourseController extends Controller
             abort(403, 'Bạn chưa đăng ký khóa học này');
         }
 
-        // 2️⃣ Lấy danh sách bài học
+        // 2️⃣ Lấy danh sách bài học của course
         $lessons = $course->lessons()
             ->orderBy('order')
             ->get();
 
-        $totalLessons = $lessons->count();
+        // 👉 LẤY DANH SÁCH lesson_id CỦA COURSE
+        $lessonIds = $lessons->pluck('id');
 
-        // 3️⃣ Đếm số bài đã hoàn thành (lesson_user)
-        $completedLessons = $course->lessons()
-            ->whereHas('students', function ($q) use ($user) {
-                $q->where('users.id', $user->id)
-                  ->where('completed', true);
-            })
+        $totalLessons = $lessonIds->count();
+
+        // 3️⃣ ĐẾM SỐ BÀI USER ĐÃ HOÀN THÀNH (lesson_user)
+        $completedLessons = DB::table('lesson_user')
+            ->where('user_id', $user->id)
+            ->whereIn('lesson_id', $lessonIds)
+            ->where('completed', 1)
             ->count();
 
-        // 4️⃣ Tính % tiến độ khóa học
+        // 4️⃣ TÍNH % TIẾN ĐỘ (CHUẨN 100%)
         $courseProgress = $totalLessons > 0
             ? round(($completedLessons / $totalLessons) * 100)
             : 0;
